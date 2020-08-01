@@ -1,5 +1,4 @@
 import os
-
 from flask import Flask
 
 def create_app(test_config=None):
@@ -8,7 +7,7 @@ def create_app(test_config=None):
 
     if test_config is None:
         # Load the instance config, if it exists, when not testing.
-        app.config.from_envvar("CULTURAL_TOUCHSTONES_SETTINGS", silent=False)
+        app.config.from_envvar('CULTURAL_TOUCHSTONES_SETTINGS', silent=False)
     else:
         # Load the test config if one was passed in.
         app.config.from_mapping(test_config)
@@ -25,4 +24,3 @@ def create_app(test_config=None):
         return 'Hello, World!'
 
     return app
-
