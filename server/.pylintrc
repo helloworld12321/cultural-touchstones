@@ -216,7 +216,8 @@ enable=import-error,
        function-redefined,
        too-many-function-args,
        parameter-unpacking,
-       print-statement
+       print-statement,
+       string_quotes
 
 
 [REPORTS]
@@ -362,6 +363,10 @@ spelling-store-unknown-words=no
 
 # List of note tags to take in consideration, separated by a comma.
 notes=FIXME,XXX,TODO
+
+string-quote=single
+triple-quote=double
+docstring-quote=double
 
 
 [BASIC]
