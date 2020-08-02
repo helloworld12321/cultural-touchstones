@@ -1,0 +1,9 @@
+# From https://github.com/github/gitignore
+# Built output
+elm.js
+
+# elm-package generated files
+elm-stuff
+
+# elm-repl generated files
+repl-temp-*
