@@ -1,7 +1,12 @@
+"""
+This is the entry point for the Flask server.
+"""
+
 import os
 
 from flask import Flask
 
+from . import db
 from .blueprints import demo
 
 # We'll use these environment variables to configure the server (if they're
@@ -26,7 +31,9 @@ DEFAULT_CONFIG = {
 }
 
 def create_app(test_config=None):
-    # Create and configure the app.
+    """
+    Create and configure the Flask app.
+    """
     app = Flask(__name__, instance_relative_config=True)
 
     app.config.from_mapping(DEFAULT_CONFIG)
@@ -48,5 +55,8 @@ def create_app(test_config=None):
         pass
 
     app.register_blueprint(demo.bp)
+
+    # Make sure we clean up any resources after each request.
+    app.teardown_appcontext(lambda _: db.close_connection())
 
     return app
