@@ -2,6 +2,8 @@ import os
 
 from flask import Flask
 
+from .blueprints import demo
+
 # We'll use these environment variables to configure the server (if they're
 # set.)
 # The first entry in each tuple is the name of the environment variables; the
@@ -45,9 +47,6 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    # Here's a simple page that says hello.
-    @app.route('/hello')
-    def hello():
-        return 'Hello, World!'
+    app.register_blueprint(demo.bp)
 
     return app
