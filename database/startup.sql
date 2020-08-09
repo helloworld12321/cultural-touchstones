@@ -1,0 +1,24 @@
+/**
+ * This script initializes the database. It creates tables and things like
+ * that.
+ *
+ * This script is VERY DESTRUCTIVE: if there's an old database running, it will
+ * be dropped, and all data will be lost. As such, this script is mostly just
+ * for development.
+ */
+
+-- We'll use the `cultural_touchstones` database for everything.
+DROP DATABASE IF EXISTS cultural_touchstones;
+CREATE DATABASE cultural_touchstones;
+USE cultural_touchstones;
+
+/**
+ * These are the movies listed in your watchlist.
+ */
+CREATE TABLE watchlist_items (
+  -- This item's index in your watchlist (counting from zero).
+  position INT NOT NULL PRIMARY KEY,
+
+  -- The text content of the item (ie, the movie's name).
+  contents VARCHAR(300) NOT NULL
+);

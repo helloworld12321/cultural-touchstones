@@ -4,6 +4,7 @@ on:
   push:
     paths:
     - 'server/**'
+    - '.github/workflows/server.yml'
 
 jobs:
   lint:
@@ -20,7 +21,17 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
+    - name: Add the MariaDB apt repository
+      run: |
+        wget https://downloads.mariadb.com/MariaDB/mariadb_repo_setup \
+          && chmod +x mariadb_repo_setup \
+          && sudo ./mariadb_repo_setup \
+            --mariadb-server-version="mariadb-10.5" \
+          && sudo apt update
+    - name: Install apt dependencies
+      run: |
+        sudo apt-get install libmariadb3 libmariadb-dev
+    - name: Install pip dependencies
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
