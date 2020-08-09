@@ -8,6 +8,7 @@
     "build:html": "cp index.html dist/",
     "build:sass": "sass styles:dist/styles -I node_modules/",
     "build:elm": "elm make src/Main.elm --output=dist/elm.js",
+    "lint": "npx elm-analyse",
     "test": "npx elm-test"
   },
   "repository": {
@@ -26,6 +27,7 @@
   },
   "homepage": "https://github.com/helloworld12321/cultural-touchstones#readme",
   "devDependencies": {
+    "elm-analyse": "^0.16.5",
     "elm-test": "^0.19.1-revision2",
     "sass": "^1.26.10"
   },
