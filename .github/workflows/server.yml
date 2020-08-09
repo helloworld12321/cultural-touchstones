@@ -30,10 +30,61 @@ jobs:
           && sudo apt update
     - name: Install apt dependencies
       run: |
-        sudo apt-get install libmariadb3 libmariadb-dev
+        sudo apt-get install -y libmariadb3 libmariadb-dev
     - name: Install pip dependencies
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Run pylint
-      run: pylint --load-plugins pylint_quotes cultural_touchstones
+      run: |
+        pylint --load-plugins pylint_quotes \
+          cultural_touchstones \
+          test/**
+
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    strategy:
+      matrix:
+        python-version: [3.6, 3.8]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Add the MariaDB apt repository
+      run: |
+        wget https://downloads.mariadb.com/MariaDB/mariadb_repo_setup \
+          && chmod +x mariadb_repo_setup \
+          && sudo ./mariadb_repo_setup \
+            --mariadb-server-version="mariadb-10.5" \
+          && sudo apt update
+    - name: Install apt dependencies
+      run: |
+        sudo apt-get install -y \
+          libmariadb3 \
+          libmariadb-dev \
+          mariadb-server \
+          mariadb-server-10.5 \
+          mariadb-client \
+          mariadb-client-10.5
+    - name: Install pip dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Install our own application as a package
+      run: pip install .
+    - name: Shut down Ubuntu's MySQL instance
+      # The Github Actions VMs may already have MySQL running, and this VM
+      # ain't big enough for the both of us.
+      run: sudo service mysql stop
+    - name: Start MariaDB
+      # This a bit of a hack, but it's good enough for government work, I guess
+      # ¯\_(ツ)_/¯
+      run: sudo mariadbd --init-file="${PWD}/../database/testing_startup.sql" &
+    - name: Run pytest
+      run: pytest
+

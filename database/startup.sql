@@ -1,6 +1,5 @@
 /**
- * This script initializes the database. It creates tables and things like
- * that.
+ * This script initializes MariaDb. It creates tables and things like that.
  *
  * This script is VERY DESTRUCTIVE: if there's an old database running, it will
  * be dropped, and all data will be lost. As such, this script is mostly just
@@ -8,8 +7,7 @@
  */
 
 -- We'll use the `cultural_touchstones` database for everything.
-DROP DATABASE IF EXISTS cultural_touchstones;
-CREATE DATABASE cultural_touchstones;
+CREATE OR REPLACE DATABASE cultural_touchstones;
 USE cultural_touchstones;
 
 /**
