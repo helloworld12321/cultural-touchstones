@@ -12,6 +12,7 @@ setuptools.setup(
     zip_safe=False,
     install_requires=[
         'flask',
+        'mariadb',
     ],
     python_requires='>=3.6',
 )
