@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/helloworld12321/cultural-touchstones#readme",
   "devDependencies": {
+    "elm-test": "^0.19.1-revision2",
     "sass": "^1.26.10"
   },
   "dependencies": {
