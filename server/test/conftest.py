@@ -39,7 +39,7 @@ def client():
         'DB_USER': 'test_user',
         'DB_NAME': 'testing',
         'DB_PASSWORD': 'testpasswordnotactuallyasecret',
-    });
-    clear_database(app);
+    })
+    clear_database(app)
     with app.test_client() as client:
         yield client
