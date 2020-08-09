@@ -1,0 +1,40 @@
+name: Client-side tests
+
+on:
+  push:
+    paths:
+    - 'client/**'
+    - '.github/workflows/client.yml'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Elm 0.19.1
+      uses: jorelali/setup-elm@v2
+      with:
+        elm-version: 0.19.1
+    - name: Install npm dependencies
+      run: npm ci
+    - name: Run elm-analyse
+      run: npm run lint
+
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Elm 0.19.1
+      uses: jorelali/setup-elm@v2
+      with:
+        elm-version: 0.19.1
+    - name: Install npm dependencies
+      run: npm ci
+    - name: Run elm-test
+      run: npm test
