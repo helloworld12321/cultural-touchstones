@@ -36,4 +36,4 @@ jobs:
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Run pylint
-      run: pylint --load-plugins pylint_quotes cultural_touchstones
+      run: pylint --load-plugins pylint_quotes cultural_touchstones test
