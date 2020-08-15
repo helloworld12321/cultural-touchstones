@@ -6,6 +6,8 @@ from flask import current_app, g
 
 import mariadb
 
+MAX_WATCHLIST_ITEM_LENGTH = 300
+
 def get_connection():
     """
     Return a connection to the database and cache it on the `g` object.

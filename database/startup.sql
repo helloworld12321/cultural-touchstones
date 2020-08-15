@@ -8,6 +8,7 @@
 
 -- We'll use the `cultural_touchstones` database for everything.
 CREATE OR REPLACE DATABASE cultural_touchstones;
+
 USE cultural_touchstones;
 
 /**

@@ -7,6 +7,7 @@
 
 -- We'll use the `testing` database for our tests.
 CREATE OR REPLACE DATABASE testing;
+
 USE testing;
 
 -- Use the same table structure as the production database.
