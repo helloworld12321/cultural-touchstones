@@ -1,5 +1,5 @@
 /**
- * This script initializes MariaDb. It creates tables and things like that.
+ * This script initializes MariaDB. It creates tables and things like that.
  *
  * This script is VERY DESTRUCTIVE: if there's an old database running, it will
  * be dropped, and all data will be lost. As such, this script is mostly just
