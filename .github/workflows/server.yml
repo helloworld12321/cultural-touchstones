@@ -32,15 +32,8 @@ jobs:
     - name: Install apt dependencies
       run: |
         sudo apt-get install -y libmariadb3 libmariadb-dev
-    - name: Install pip dependencies
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Run pylint
-      run: |
-        pylint --load-plugins pylint_quotes \
-          cultural_touchstones \
-          test/**
+    - name: Run the linter
+      run: python setup.py lint
 
   test:
     runs-on: ubuntu-latest
@@ -80,6 +73,6 @@ jobs:
       # This a bit of a hack, but it's good enough for government work, I guess
       # ¯\_(ツ)_/¯
       run: sudo mariadbd --init-file="${PWD}/../database/testing_startup.sql" &
-    - name: Run pytest
+    - name: Run the tests
       run: python setup.py test
 
