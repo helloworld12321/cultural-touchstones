@@ -1,10 +1,6 @@
 name: Client-side tests
 
-on:
-  push:
-    paths:
-    - 'client/**'
-    - '.github/workflows/client.yml'
+on: push
 
 jobs:
   lint:

@@ -7,7 +7,7 @@ import os
 from flask import Flask
 
 from . import db
-from .blueprints import demo
+from .blueprints import watchlist
 
 # We'll use these environment variables to configure the server (if they're
 # set.)
@@ -54,7 +54,7 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    app.register_blueprint(demo.bp)
+    app.register_blueprint(watchlist.bp)
 
     # Make sure we clean up any resources after each request.
     app.teardown_appcontext(lambda _: db.close_connection())

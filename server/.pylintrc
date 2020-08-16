@@ -217,7 +217,8 @@ enable=import-error,
        too-many-function-args,
        parameter-unpacking,
        print-statement,
-       string_quotes
+       string_quotes,
+       line-too-long
 
 
 [REPORTS]
@@ -260,7 +261,7 @@ logging-modules=logging
 max-line-length=80
 
 # Regexp for a line that is allowed to be longer than the limit.
-ignore-long-lines=^\s*(# )?<?https?://\S+>?$
+ignore-long-lines=^\s*((# )?<?https?://\S+>?|def test_.*)$
 
 # Allow the body of an if to be on the same line as the test if there is no
 # else.
