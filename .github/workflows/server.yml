@@ -1,11 +1,6 @@
 name: Server-side tests
 
-on:
-  push:
-    paths:
-    - 'database/**'
-    - 'server/**'
-    - '.github/workflows/server.yml'
+on: push
 
 jobs:
   lint:
