@@ -26,4 +26,4 @@ viewOfWatchlist items =
   let
     liOfItem item = Html.li [] [ Html.text item ]
   in
-  Html.ul [] (items |> List.map liOfItem)
+  Html.ul [ Attributes.class "watchlist" ] (items |> List.map liOfItem)
