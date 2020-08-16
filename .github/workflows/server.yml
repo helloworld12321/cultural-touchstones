@@ -22,16 +22,6 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Add the MariaDB apt repository
-      run: |
-        wget https://downloads.mariadb.com/MariaDB/mariadb_repo_setup \
-          && chmod +x mariadb_repo_setup \
-          && sudo ./mariadb_repo_setup \
-            --mariadb-server-version="mariadb-10.5" \
-          && sudo apt update
-    - name: Install apt dependencies
-      run: |
-        sudo apt-get install -y libmariadb3 libmariadb-dev
     # Make sure we're using a version of pip with `wheel` installed
     - run: pip install --upgrade pip && pip install wheel
     - name: Run the linter
