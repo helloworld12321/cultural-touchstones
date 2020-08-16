@@ -4,14 +4,16 @@ module Main exposing (main)
 
 import Browser
 
+import State
 import Types
 import View
 
 main : Program Types.Flags Types.Model Types.Msg
 main =
-  Browser.sandbox
-    { init = ()
-    , update = \() () -> ()
+  Browser.element
+    { init = State.init
+    , update = State.update
+    , subscriptions = State.subscriptions
     , view = View.view
     }
 
