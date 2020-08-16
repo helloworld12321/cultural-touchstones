@@ -2,20 +2,12 @@ module State exposing (init, update, subscriptions)
 
 {-| This file provides functions that managae the state of the web app. -}
 
-import Http
-
 import Ajax
 import Types
 
 init : Types.Flags -> (Types.Model, Cmd Types.Msg)
 init () =
-  ( Types.Loading
-  , Http.get
-      { url = "/api/watchlist"
-      , expect =
-          Http.expectJson Types.GetWatchlistCompleted Ajax.watchlistDecoder
-      }
-  )
+  (Types.Loading, Ajax.getWatchlist)
 
 update : Types.Msg -> Types.Model -> (Types.Model, Cmd Types.Msg)
 update msg _ =
