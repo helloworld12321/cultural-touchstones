@@ -29,19 +29,14 @@ class PylintCommand(distutils.cmd.Command):
         pass
 
     def run(self):
-        command = [
-            'pylint',
+        import pylint.lint
+        pylint.lint.Run([
             '--load-plugins',
             'pylint_quotes',
             'cultural-touchstones',
             'test/**',
             'setup.py',
-        ]
-        self.announce(
-            f'Running command: {command}',
-            level=distutils.log.INFO,
-        )
-        subprocess.check_call(command)
+        ])
 
 class GunicornCommand(distutils.cmd.Command):
     """
@@ -93,11 +88,11 @@ setuptools.setup(
     ],
     setup_requires=[
         'pytest-runner',
+        'pylint',
+        'pylint-quotes',
     ],
     tests_require=[
         'pytest',
-        'pylint',
-        'pylint-quotes',
     ],
     python_requires='>=3.6',
 )
