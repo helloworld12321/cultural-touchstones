@@ -18,7 +18,6 @@ import Test.Html.Selector as Selector
 import State
 import Types
 import View
-import Http
 
 
 {-| This function takes an application in the Loading state, gives it a message
