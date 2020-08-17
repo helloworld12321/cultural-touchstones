@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 This file manages installing, running, testing, and linting the project.
 

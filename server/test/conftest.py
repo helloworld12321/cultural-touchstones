@@ -12,6 +12,7 @@ import mariadb
 import pytest
 
 import cultural_touchstones
+from cultural_touchstones.db import MAX_WATCHLIST_ITEM_LENGTH
 
 # This class represents one of the rows in the 'watchlist-items' database
 # table.
@@ -107,9 +108,9 @@ def client_with_data(_app):
             'The Castle of Cagliostro',
             'Nausicaä of the Valley of the Wind',
             '',
-            '.' * cultural_touchstones.db.MAX_WATCHLIST_ITEM_LENGTH,
+            '.' * MAX_WATCHLIST_ITEM_LENGTH,
             # Test the Santa emoji, since it's an astral-plane character.
-            '🎅' * cultural_touchstones.db.MAX_WATCHLIST_ITEM_LENGTH,
+            '🎅' * MAX_WATCHLIST_ITEM_LENGTH,
         ])
     ]
     _clear_database(_app)
