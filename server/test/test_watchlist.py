@@ -4,7 +4,7 @@ This file tests the endpoints in the "watchlist" blueprint.
 
 from http import HTTPStatus
 
-from cultural_touchstones.db import MAX_WATCHLIST_ITEM_LENGTH
+from cultural_touchstones.validation import MAX_WATCHLIST_ITEM_LENGTH
 
 def test_GET_watchlist_returns_an_empty_list_when_the_database_is_empty(empty_client):
     response = empty_client.get('/watchlist')
@@ -59,7 +59,7 @@ def test_PUT_watchlist_handles_unicode_just_fine(empty_client):
     movie_names = [
         'ä',
         'ä' * MAX_WATCHLIST_ITEM_LENGTH,
-        # Test the Santa emoji, since it's an astral-plane character.
+        # Test the Santa emoji, since he's an astral-plane character.
         '🎅' * MAX_WATCHLIST_ITEM_LENGTH,
     ]
     put_response = empty_client.put('/watchlist', json=movie_names)
@@ -89,7 +89,7 @@ def test_PUT_watchlist_fails_if_the_payload_is_not_a_list_of_strings(empty_clien
     assert response2.status_code == HTTPStatus.BAD_REQUEST
     response3 = empty_client.put(
         '/watchlist',
-        "This isn't really JSON data, sorry",
+        data="This isn't really JSON data, sorry",
         content_type="'application/json'",
     )
     assert response3.status_code == HTTPStatus.BAD_REQUEST
