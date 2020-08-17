@@ -1,6 +1,6 @@
-module MainSpec exposing (suite)
+module WatchlistSpec exposing (suite)
 
-{- This module tests the application's entry-point.
+{- This module tests the watchlist-related functionality.
 
 Note that we aren't testing the AJAX requests, just the app's state management
 and view generation. (This is mostly for simplicity's sake--AJAX takes place in
@@ -15,9 +15,9 @@ import Test
 import Test.Html.Query as Query
 import Test.Html.Selector as Selector
 
-import State
-import Types
-import View
+import Watchlist.State as State
+import Watchlist.Types as Types
+import Watchlist.View as View
 
 
 {-| This function takes an application in the Loading state, gives it a message

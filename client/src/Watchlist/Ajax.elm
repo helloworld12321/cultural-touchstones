@@ -1,11 +1,11 @@
-module Ajax exposing (getWatchlist)
+module Watchlist.Ajax exposing (getWatchlist)
 
-{-| This file contains values for working making requests to the server. -}
+{-| This file is in charge of watchlist-related requests to the server. -}
 
 import Http
 import Json.Decode as Decode
 
-import Types
+import Watchlist.Types as Types
 
 {-| This decoder parses the response from the GET /api/watchlist endpoint. -}
 watchlistDecoder : Decode.Decoder (List String)

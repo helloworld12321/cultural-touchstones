@@ -2,20 +2,19 @@ module State exposing (init, update, subscriptions)
 
 {-| This file provides functions that managae the state of the web app. -}
 
-import Ajax
 import Types
+import Watchlist.State
+import Watchlist.Types
 
 init : Types.Flags -> (Types.Model, Cmd Types.Msg)
 init () =
-  (Types.Loading, Ajax.getWatchlist)
+  Watchlist.State.init ()
 
 update : Types.Msg -> Types.Model -> (Types.Model, Cmd Types.Msg)
-update msg _ =
-  case msg of
-    Types.GetWatchlistCompleted (Ok items) ->
-      (Types.Watchlist items, Cmd.none)
-    Types.GetWatchlistCompleted (Err _) ->
-      (Types.Error, Cmd.none)
+update message model =
+  case message of
+    Watchlist.Types.GetWatchlistCompleted _ ->
+      Watchlist.State.update message model
 
 subscriptions : Types.Model -> Sub Types.Msg
 subscriptions _ =
