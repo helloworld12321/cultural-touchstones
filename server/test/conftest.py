@@ -61,7 +61,7 @@ def _insert_watchlist_items(app, items):
         connection.cursor().executemany(
             """
             INSERT INTO watchlist_items (position, contents)
-                VALUES (?, ?)
+                VALUES (?, ?);
             """,
             items
         )

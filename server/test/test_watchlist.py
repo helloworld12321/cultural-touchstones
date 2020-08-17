@@ -87,3 +87,9 @@ def test_PUT_watchlist_fails_if_the_payload_is_not_a_list_of_strings(empty_clien
         2: '2 Fast 2 Furious',
     })
     assert response2.status_code == HTTPStatus.BAD_REQUEST
+    response3 = empty_client.put(
+        '/watchlist',
+        "This isn't really JSON data, sorry",
+        content_type="'application/json'",
+    )
+    assert response3.status_code == HTTPStatus.BAD_REQUEST
