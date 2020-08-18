@@ -23,7 +23,7 @@ import Watchlist.View as View
 {-| This function takes an application in the Loading state, gives it a message
 of your discretion, and returns the HTML it generates in response.
 -}
-viewFromMessage : Types.Msg -> Html.Html Types.Msg
+viewFromMessage : Types.Message -> Html.Html Types.Message
 viewFromMessage message =
   let
     previousState = Types.Loading

@@ -1,4 +1,14 @@
 @use "theme"
+@use "snackbar"
+
+html, body
+  height: 100%
+  box-sizing: border-box
+
+body
+  // `position: relative` here means that any absolutely-positioned child
+  // elements should get their coordinates from body tag.
+  position: relative
 
 .loading
   font-style: oblique

@@ -13,7 +13,7 @@ watchlistDecoder =
   Decode.list Decode.string
 
 {-| This command requests the watchlist from the server. -}
-getWatchlist : Cmd Types.Msg
+getWatchlist : Cmd Types.Message
 getWatchlist =
   Http.get
     { url = "/api/watchlist"

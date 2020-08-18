@@ -7,7 +7,7 @@ import Html.Attributes as Attributes
 
 import Watchlist.Types as Types
 
-view : Types.Model -> Html.Html Types.Msg
+view : Types.Model -> Html.Html Types.Message
 view model =
   case model of
     Types.Watchlist items ->
@@ -21,7 +21,7 @@ view model =
       Html.p [ Attributes.class "error" ] [ Html.text errorMessage ]
 
 {-| If we have a watchlist to display, this function will turn it into HTML. -}
-viewOfWatchlist : List String -> Html.Html Types.Msg
+viewOfWatchlist : List String -> Html.Html Types.Message
 viewOfWatchlist items =
   let
     liOfItem item = Html.li [] [ Html.text item ]

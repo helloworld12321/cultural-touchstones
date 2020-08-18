@@ -8,7 +8,7 @@ import State
 import Types
 import View
 
-main : Program Types.Flags Types.Model Types.Msg
+main : Program Types.Flags Types.Model Types.Message
 main =
   Browser.element
     { init = State.init

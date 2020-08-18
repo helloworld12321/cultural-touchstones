@@ -3,19 +3,48 @@ module State exposing (init, update, subscriptions)
 {-| This file provides functions that managae the state of the web app. -}
 
 import Types
+import Snackbar.State
 import Watchlist.State
-import Watchlist.Types
 
-init : Types.Flags -> (Types.Model, Cmd Types.Msg)
+init : Types.Flags -> (Types.Model, Cmd Types.Message)
 init () =
-  Watchlist.State.init ()
+  let
+    (snackbarModel, snackbarCmd) = Snackbar.State.init ()
+    (watchlistModel, watchlistCmd) = Watchlist.State.init ()
+  in
+  ( (snackbarModel, watchlistModel)
+  , Cmd.batch
+    {- Use Cmd.map to mark messages according to the component they pertain to.
+    -}
+    [ Cmd.map Types.SnackbarMessage snackbarCmd
+    , Cmd.map Types.WatchlistMessage watchlistCmd
+    ]
+  )
 
-update : Types.Msg -> Types.Model -> (Types.Model, Cmd Types.Msg)
+update : Types.Message -> Types.Model -> (Types.Model, Cmd Types.Message)
 update message model =
+  let
+    (snackbarModel, watchlistModel) = model
+  in
+  {- Delegate messages according to the component they pertain to. -}
   case message of
-    Watchlist.Types.GetWatchlistCompleted _ ->
-      Watchlist.State.update message model
+    Types.SnackbarMessage m ->
+      let
+        (newSnackbarModel, cmd) =
+          snackbarModel |> Snackbar.State.update m
+      in
+      ( (newSnackbarModel, watchlistModel)
+      , Cmd.map Types.SnackbarMessage cmd
+      )
+    Types.WatchlistMessage m ->
+      let
+        (newWatchlistModel, cmd) =
+          watchlistModel |> Watchlist.State.update m
+      in
+      ( (snackbarModel, newWatchlistModel)
+      , Cmd.map Types.WatchlistMessage cmd
+      )
 
-subscriptions : Types.Model -> Sub Types.Msg
+subscriptions : Types.Model -> Sub Types.Message
 subscriptions _ =
     Sub.none
