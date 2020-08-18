@@ -28,7 +28,7 @@ viewFromMessage : Types.Message -> Html.Html Types.Message
 viewFromMessage message =
   let
     (previousState, _) = State.init ()
-    ((_, watchlistModel), _) = State.update message previousState
+    ({ watchlistModel }, _) = State.update message previousState
   in
   Watchlist.View.view watchlistModel
 

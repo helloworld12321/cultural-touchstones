@@ -12,7 +12,7 @@ import Watchlist.View
 view : Types.Model -> Html.Html Types.Message
 view model =
   let
-    (snackbarModel, watchlistModel) = model
+    { snackbarModel, watchlistModel } = model
     maybeSnackbarView = Snackbar.View.view snackbarModel
     watchlistView = Watchlist.View.view watchlistModel
   in

@@ -12,84 +12,90 @@ import Watchlist.Types
 
 init : Types.Flags -> (Types.Model, Cmd Types.Message)
 init () =
-  let
-    snackbarModel = Nothing
-    watchlistModel = Watchlist.Types.Loading
-  in
-  ( (snackbarModel, watchlistModel)
+  ( { snackbarModel = Nothing, watchlistModel = Watchlist.Types.Loading }
   , Watchlist.Ajax.getWatchlist
   )
 
 update : Types.Message -> Types.Model -> (Types.Model, Cmd Types.Message)
 update message oldModel =
-  let
-    (oldSnackbarModel, oldWatchlistModel) = oldModel
-  in
   case message of
     Types.GetWatchlistCompleted (Ok items) ->
-      ( ( oldSnackbarModel
-        , Watchlist.Types.List items
-        )
+      ( { oldModel
+        | watchlistModel = Watchlist.Types.List items
+        }
       , Cmd.none
       )
     Types.GetWatchlistCompleted (Err _) ->
-      ( ( Just
-            { transitionState = Snackbar.Types.Hidden
-            , text = Watchlist.Types.errorSnackbarText
-            }
-        , Watchlist.Types.Error)
-      {- delay 50 makes sure that the snackbar is added to the view before
-      the transition starts. See:
-      https://stackoverflow.com/questions/24148403/trigger-css-transition-on-appended-element
-
-      Also, the delay can't be too small, or else Elm may not have have
-      rendered the snackbar by the time the message is received.
-      -}
-      , Utils.delay 50 Types.SnackbarNextTransitionState
+      ( { oldModel
+        | snackbarModel =
+            Just
+              { transitionState = Snackbar.Types.Hidden
+              , text = Watchlist.Types.errorSnackbarText
+              }
+        , watchlistModel =
+            Watchlist.Types.Error
+        }
+      , delaySnackbarState Snackbar.Types.Waxing
       )
-    Types.SnackbarNextTransitionState ->
-      transitionTheSnackbarToItsNextState oldSnackbarModel oldWatchlistModel
+    Types.SnackbarNextTransitionState nextState ->
+      transitionTheSnackbar oldModel nextState
 
 {-| Respond to a SnackbarNextTransitionState event. -}
-transitionTheSnackbarToItsNextState
-  : Snackbar.Types.Model
-  -> Watchlist.Types.Model
+transitionTheSnackbar
+  : Types.Model
+  -> Maybe Snackbar.Types.TransitionState
   -> (Types.Model, Cmd Types.Message)
-transitionTheSnackbarToItsNextState oldSnackbarModel oldWatchlistModel =
-  oldSnackbarModel
-    |> Maybe.map (\{ transitionState, text } ->
-      case transitionState of
-        Snackbar.Types.Hidden ->
-          ( ( Just
-                { transitionState = Snackbar.Types.Waxing
-                , text = text
-                }
-            , oldWatchlistModel)
+transitionTheSnackbar oldModel nextTransitionState =
+  oldModel.snackbarModel
+    |> Maybe.map (\snackbar ->
+      case nextTransitionState of
+        Just Snackbar.Types.Hidden ->
+          ( { oldModel
+            | snackbarModel =
+                Just
+                  { snackbar
+                  | transitionState = Snackbar.Types.Hidden
+                  }
+            }
+          , delaySnackbarState Snackbar.Types.Waxing
+          )
+        Just Snackbar.Types.Waxing ->
+          ( { oldModel
+            | snackbarModel =
+                Just
+                  { snackbar
+                  | transitionState = Snackbar.Types.Waxing
+                  }
+            }
           {- We'll just wait for the HTML to emit a transitionend event. -}
           , Cmd.none
           )
-        Snackbar.Types.Waxing ->
-          ( ( Just
-                { transitionState = Snackbar.Types.Displayed
-                , text = text
-                }
-            , oldWatchlistModel)
-          , Utils.delay
-              Snackbar.Types.snackbarDuration
-              Types.SnackbarNextTransitionState
+        Just Snackbar.Types.Displayed ->
+          ( { oldModel
+            | snackbarModel =
+                Just
+                  { snackbar
+                  | transitionState = Snackbar.Types.Displayed
+                  }
+            }
+          {- Wait for the user to click the dismiss button-}
+          , Cmd.none
           )
-        Snackbar.Types.Displayed ->
-          ( ( Just
-                { transitionState = Snackbar.Types.Waning
-                , text = text
-                }
-            , oldWatchlistModel)
+        Just Snackbar.Types.Waning ->
+          ( { oldModel
+            | snackbarModel =
+                Just
+                  { snackbar
+                  | transitionState = Snackbar.Types.Waning
+                  }
+            }
           {- Again, we'll wait for a transitionend event before moving on. -}
           , Cmd.none
           )
-        Snackbar.Types.Waning ->
-          ( ( Nothing
-            , oldWatchlistModel)
+        Nothing ->
+          ( { oldModel
+            | snackbarModel = Nothing
+            }
           , Cmd.none
           )
     )
@@ -97,9 +103,27 @@ transitionTheSnackbarToItsNextState oldSnackbarModel oldWatchlistModel =
       {- There should always be an existing snackbar when we receive this
       message, but if there isn't, we can just ignore the message, I guess.
       -}
-      ( (oldSnackbarModel, oldWatchlistModel)
+      ( oldModel
       , Cmd.none
       )
+
+{-| Emit a SnackbarNextTransitionState message in just a few milliseconds -}
+delaySnackbarState
+  : Snackbar.Types.TransitionState
+  -> Cmd Types.Message
+delaySnackbarState nextTransitionState =
+  {- A short delay, like 50 milliseconds, makes sure that Elm renders the
+  previous state before the next state of the transition starts See:
+  https://stackoverflow.com/questions/24148403/trigger-css-transition-on-appended-element
+
+  Also, the delay can't be too small, or else Elm may not have have finished
+  rendering the previous state by the time the message is received. (The
+  snackbar should be robust against that sort of sequence-breaking, but it
+  would be *better* if it didn't skip steps.)
+  -}
+  Utils.delay
+    50
+    (Types.SnackbarNextTransitionState (Just nextTransitionState))
 
 
 

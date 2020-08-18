@@ -10,6 +10,7 @@ import Maybe
 
 import Snackbar.Types
 import Types
+import Utils.MoreAttributes as MoreAttributes
 
 view : Snackbar.Types.Model -> Maybe.Maybe (Html.Html Types.Message)
 view model =
@@ -26,20 +27,43 @@ view model =
           else
             [ Attributes.class "snackbar" ]
         listeners =
-          [ onTransitionEnd "transform" Types.SnackbarNextTransitionState ]
+          [ onTransitionEnd
+              "transform"
+              (Types.SnackbarNextTransitionState
+                (Snackbar.Types.next transitionState)
+              )
+          ]
       in
       Html.div
         (List.concat [ classes, listeners ])
-        [ Html.text text ]
+        [ Html.text text, dismissButton ]
     )
+
+dismissButton : Html.Html Types.Message
+dismissButton =
+  let
+    message = Types.SnackbarNextTransitionState (Just Snackbar.Types.Waning)
+  in
+  Html.a
+  [ Attributes.class "dismiss"
+  , Attributes.href "#"
+  , Events.onClick message
+  , MoreAttributes.role "button"
+  , MoreAttributes.tabIndex "0"
+  , MoreAttributes.ariaLabel "Dismiss"
+  ]
+  {- The "Heavy Multiplication X" symbol-}
+  [ Html.text "✖" ]
 
 {-| An HTML attribute that listens for the end of a transition involving a
 specific CSS property.
+
+Note that we never listen for all transitionend events, because that would be
+quite noisy--if a transition involves multiple properties, then every one of
+those properties emits its own transitionend event.
 -}
-onTransitionEnd : String -> msg -> Html.Attribute msg
+onTransitionEnd : String -> message -> Html.Attribute message
 onTransitionEnd expectedPropertyName message =
-  {- Only listen for the "transform" property. (Usually, transitionend fires
-  once per property involved in the transition. To debounce it, we fiter out) -}
   Events.on
     "transitionend"
     (Decode.field "propertyName" Decode.string
@@ -47,6 +71,9 @@ onTransitionEnd expectedPropertyName message =
         if propertyName == expectedPropertyName then
           Decode.succeed message
         else
+          {- In an event handler like this, a decoder failure means "don't
+          emit anything".
+          -}
           Decode.fail ""
       )
     )

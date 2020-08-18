@@ -1,17 +1,10 @@
-module Snackbar.Types exposing (Model, TransitionState(..), snackbarDuration)
+module Snackbar.Types exposing (Model, TransitionState(..), next)
 
 {-| These are the types and values used by the snackbar.
 
 A snackbar, also called a toast, is little temporary UI element that pops up
 from the bottom of the screen to display a notification or message.
 -}
-
-{-| The number of milliseconds for which the snackbar is displayed.
-
-The transitions onto and off of the page aren't included in this duration.
--}
-snackbarDuration : Float
-snackbarDuration = 4000
 
 {-| This is the state of the snackbar.
 
@@ -39,3 +32,15 @@ type TransitionState
   {- This is the state when the snackbar is transitioning down off of the page.
   -}
   | Waning
+
+{-| Return the transition state that comes after the current one.
+
+If the snackbar should be removed from the DOM next, then return Nothing.
+-}
+next : TransitionState -> Maybe TransitionState
+next transitionState =
+  case transitionState of
+     Hidden -> Just Waxing
+     Waxing -> Just Displayed
+     Displayed -> Just Waning
+     Waning -> Nothing

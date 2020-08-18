@@ -5,8 +5,7 @@
   left:0
   right:0
   bottom: 0
-  // This width is a bit imprecise--I just chose a value that looked good
-  // ¯\_(ツ)_/¯
+  // The width is a bit imprecise--I just chose a value that looked good! 🙃
   width: min(40em, 80%)
   margin: 0 auto 0.4em
   padding: 0.4em 1.4em
@@ -21,4 +20,14 @@
     transform: translate(0, 0)
     opacity: 1
   transition: transform 0.5s ease, opacity 0.5s ease
+  display: flex
+  justify-content: space-between
+  align-items: center
+
+.snackbar .dismiss
+  color: theme.$color-fade
+  font-size: larger
+  // I think Sakura might be giving the link a border-bottom on hover. I
+  // don't know why, though.
+  border-bottom: 0
 
