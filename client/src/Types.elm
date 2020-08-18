@@ -2,6 +2,8 @@ module Types exposing (Flags, Model, Message(..))
 
 {-| These are the types and values used at the top-level of the Elm program -}
 
+import Http
+
 import Snackbar.Types
 import Watchlist.Types
 
@@ -11,5 +13,11 @@ type alias Model =
   (Snackbar.Types.Model, Watchlist.Types.Model)
 
 type Message
-  = SnackbarMessage Snackbar.Types.Message
-  | WatchlistMessage Watchlist.Types.Message
+  {- We receive this message when our request to the server to get the
+  watchlist completed (either successfully or unsuccessfully).
+  -}
+  = GetWatchlistCompleted (Result Http.Error (List String))
+  {- We receive this message when a snackbar finishes one state of its
+  animation, and is ready to transition into the next state.
+  -}
+  | SnackbarNextTransitionState

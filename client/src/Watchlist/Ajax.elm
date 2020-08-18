@@ -5,7 +5,7 @@ module Watchlist.Ajax exposing (getWatchlist)
 import Http
 import Json.Decode as Decode
 
-import Watchlist.Types as Types
+import Types
 
 {-| This decoder parses the response from the GET /api/watchlist endpoint. -}
 watchlistDecoder : Decode.Decoder (List String)

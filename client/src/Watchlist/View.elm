@@ -5,20 +5,21 @@ module Watchlist.View exposing (view)
 import Html
 import Html.Attributes as Attributes
 
-import Watchlist.Types as Types
+import Watchlist.Types
+import Types
 
-view : Types.Model -> Html.Html Types.Message
+view : Watchlist.Types.Model -> Html.Html Types.Message
 view model =
   case model of
-    Types.Watchlist items ->
+    Watchlist.Types.List items ->
       viewOfWatchlist items
-    Types.Loading ->
+    Watchlist.Types.Loading ->
       Html.p [ Attributes.class "loading" ] [ Html.text "Loading…" ]
-    Types.Error ->
+    Watchlist.Types.Error ->
       let
-        errorMessage = "Something went wrong."
+        errorText = "Something went wrong."
       in
-      Html.p [ Attributes.class "error" ] [ Html.text errorMessage ]
+      Html.p [ Attributes.class "error" ] [ Html.text errorText ]
 
 {-| If we have a watchlist to display, this function will turn it into HTML. -}
 viewOfWatchlist : List String -> Html.Html Types.Message

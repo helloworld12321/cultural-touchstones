@@ -15,9 +15,10 @@ import Test
 import Test.Html.Query as Query
 import Test.Html.Selector as Selector
 
-import Watchlist.State as State
-import Watchlist.Types as Types
-import Watchlist.View as View
+import State
+import Types
+import Watchlist.Types
+import Watchlist.View
 
 
 {-| This function takes an application in the Loading state, gives it a message
@@ -26,10 +27,10 @@ of your discretion, and returns the HTML it generates in response.
 viewFromMessage : Types.Message -> Html.Html Types.Message
 viewFromMessage message =
   let
-    previousState = Types.Loading
-    (currentState, _) = State.update message previousState
+    (previousState, _) = State.init ()
+    ((_, watchlistModel), _) = State.update message previousState
   in
-  View.view currentState
+  Watchlist.View.view watchlistModel
 
 
 suite : Test.Test
@@ -125,7 +126,7 @@ suite =
             "contains an element with the \"loading\" class" <|
             \() ->
               let
-                viewHtml = View.view Types.Loading
+                viewHtml = Watchlist.View.view Watchlist.Types.Loading
               in
               Html.div [] [ viewHtml ]
                 |> Query.fromHtml
