@@ -1,4 +1,4 @@
-module Utils exposing (delay)
+module Utils exposing (delay, flip)
 
 {-| This file contains some helper functions. -}
 
@@ -11,3 +11,7 @@ delay millis message =
   {- Adapted from https://stackoverflow.com/a/44354637 -}
   Process.sleep millis
   |> Task.perform (\() -> message)
+
+flip : (a -> b -> c) -> b -> a -> c
+flip function a b =
+  function b a

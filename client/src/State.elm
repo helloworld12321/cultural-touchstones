@@ -6,7 +6,7 @@ import Maybe
 
 import Snackbar.Types
 import Types
-import Utils
+import Utils exposing (delay)
 import Watchlist.Ajax
 import Watchlist.Types
 
@@ -121,7 +121,7 @@ delaySnackbarState nextTransitionState =
   snackbar should be robust against that sort of sequence-breaking, but it
   would be *better* if it didn't skip steps.)
   -}
-  Utils.delay
+  delay
     50
     (Types.SnackbarNextTransitionState (Just nextTransitionState))
 
