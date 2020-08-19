@@ -5,7 +5,7 @@ module TestUtils exposing (parameterized)
 import Expect
 import Test
 
-{- Run a test on every item in a list of inputs -}
+{-| Run a test on every item in a list of inputs. -}
 parameterized : String -> (a -> Expect.Expectation) -> List a -> Test.Test
 parameterized name test inputs =
   Test.describe

@@ -21,16 +21,14 @@ type alias Snackbar =
 
 {-| These are the different stages of the snackbar's animation. -}
 type TransitionState
-  {- This is the state when the snackbar hasn't started popping up yet. -}
+  -- This is the state when the snackbar hasn't started popping up yet.
   = Hidden
-  {- This is the state when the snackbar is in the process of popping up. -}
+  -- This is the state when the snackbar is in the process of popping up.
   | Waxing
-  {- This is the state when the snackbar has finished transitioning onto the
-  page.
-  -}
+  -- This is the state when the snackbar has finished transitioning onto the
+  -- page.
   | Displayed
-  {- This is the state when the snackbar is transitioning down off of the page.
-  -}
+  -- This is the state when the snackbar is transitioning down off of the page.
   | Waning
 
 {-| Return the transition state that comes after the current one.

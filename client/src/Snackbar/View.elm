@@ -52,7 +52,7 @@ dismissButton =
   , MoreAttributes.tabIndex "0"
   , MoreAttributes.ariaLabel "Dismiss"
   ]
-  {- The "Heavy Multiplication X" symbol-}
+  -- The "Heavy Multiplication X" symbol.
   [ Html.text "✖" ]
 
 {-| An HTML attribute that listens for the end of a transition involving a
@@ -71,9 +71,8 @@ onTransitionEnd expectedPropertyName message =
         if propertyName == expectedPropertyName then
           Decode.succeed message
         else
-          {- In an event handler like this, a decoder failure means "don't
-          emit anything".
-          -}
+          -- In an event handler like this, a decoder failure means "don't
+          -- emit anything".
           Decode.fail ""
       )
     )

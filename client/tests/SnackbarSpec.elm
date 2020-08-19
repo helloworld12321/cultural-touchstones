@@ -17,7 +17,6 @@ import Snackbar.View
 import Utils exposing (flip)
 
 import TestUtils
-import Snackbar.Types
 
 {-| This function gets the initial state of the application, and then modifies
 that state to include a snackbar, hidden, with the given text.

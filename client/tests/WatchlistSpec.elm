@@ -45,20 +45,17 @@ suite =
                 viewHtml =
                   viewFromMessage (Types.GetWatchlistCompleted (Ok []))
               in
-              {- elm-explorations/test doesn't have a way to query an element
-              and its children, so instead what we're going to do is put the
-              view in a div and query the children of that div. This lets us
-              query the entire view.
-              -}
+              -- elm-explorations/test doesn't have a way to query an element
+              -- and its children, so instead what we're going to do is put the
+              -- view in a div and query the children of that div. This lets us
+              -- query the entire view.
               Html.div [] [ viewHtml ]
                 |> Query.fromHtml
-                {- At this step, the test will fail unless there's exactly one
-                ul with the "watchlist" class.
-                -}
+                -- At this step, the test will fail unless there's exactly one
+                -- ul with the "watchlist" class.
                 |> Query.find [ Selector.tag "ul", Selector.class "watchlist" ]
-                {- This query gets all children, since an empty selector list
-                matches everything.
-                -}
+                -- This query gets all children, since an empty selector list
+                -- matches everything.
                 |> Query.children []
                 |> Query.count (Expect.equal 0)
 
@@ -83,10 +80,9 @@ suite =
                 viewHtml =
                   viewFromMessage (Types.GetWatchlistCompleted (Ok movies))
 
-                {- Given a movie name and some html, expect that the html has
-                html has a <ul class="watchlist">, and expect that inside that
-                <ul> there's a <li> with the movie name.
-                -}
+                -- Given a movie name and some html, expect that the html has
+                -- html has a <ul class="watchlist">, and expect that inside
+                -- that <ul> there's a <li> with the movie name.
                 expectContainsLiFor movieName html =
                   Html.div [] [ html ]
                     |> Query.fromHtml
@@ -103,9 +99,8 @@ suite =
     , Test.describe
         "When getting the watchlist failed"
         [ Test.test
-            {- It isn't worth it to be more specific than this. (We wouldn't
-            want the tests to be too brittle!)
-            -}
+            -- It isn't worth it to be more specific than this. (We wouldn't
+            -- want the tests to be too brittle!)
             "contains an element with the \"error\" class" <|
             \() ->
               let

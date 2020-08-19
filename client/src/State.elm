@@ -67,7 +67,7 @@ transitionTheSnackbar oldModel nextTransitionState =
                   | transitionState = Snackbar.Types.Waxing
                   }
             }
-          {- We'll just wait for the HTML to emit a transitionend event. -}
+          -- We'll just wait for the HTML to emit a transitionend event.
           , Cmd.none
           )
         Just Snackbar.Types.Displayed ->
@@ -78,7 +78,7 @@ transitionTheSnackbar oldModel nextTransitionState =
                   | transitionState = Snackbar.Types.Displayed
                   }
             }
-          {- Wait for the user to click the dismiss button-}
+          -- Wait for the user to click the dismiss button.
           , Cmd.none
           )
         Just Snackbar.Types.Waning ->
@@ -89,7 +89,7 @@ transitionTheSnackbar oldModel nextTransitionState =
                   | transitionState = Snackbar.Types.Waning
                   }
             }
-          {- Again, we'll wait for a transitionend event before moving on. -}
+          -- Again, we'll wait for a transitionend event before moving on.
           , Cmd.none
           )
         Nothing ->
@@ -100,9 +100,8 @@ transitionTheSnackbar oldModel nextTransitionState =
           )
     )
     |> Maybe.withDefault
-      {- There should always be an existing snackbar when we receive this
-      message, but if there isn't, we can just ignore the message, I guess.
-      -}
+      -- There should always be an existing snackbar when we receive this
+      -- message, but if there isn't, we can just ignore the message, I guess.
       ( oldModel
       , Cmd.none
       )
@@ -112,15 +111,13 @@ delaySnackbarState
   : Snackbar.Types.TransitionState
   -> Cmd Types.Message
 delaySnackbarState nextTransitionState =
-  {- A short delay, like 50 milliseconds, makes sure that Elm renders the
-  previous state before the next state of the transition starts See:
-  https://stackoverflow.com/questions/24148403/trigger-css-transition-on-appended-element
-
-  Also, the delay can't be too small, or else Elm may not have have finished
-  rendering the previous state by the time the message is received. (The
-  snackbar should be robust against that sort of sequence-breaking, but it
-  would be *better* if it didn't skip steps.)
-  -}
+  -- A short delay, like 50 milliseconds, makes sure that Elm renders the
+  -- previous state before the next state of the transition starts See:
+  -- https://stackoverflow.com/questions/24148403/trigger-css-transition-on-appended-element
+  -- Also, the delay can't be too small, or else Elm may not have have finished
+  -- rendering the previous state by the time the message is received. (The
+  -- snackbar should be robust against that sort of sequence-breaking, but it
+  -- would be *better* if it didn't skip steps.
   delay
     50
     (Types.SnackbarNextTransitionState (Just nextTransitionState))
