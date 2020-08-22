@@ -1,4 +1,4 @@
-@use "theme"
+@use 'theme'
 
 .snackbar
   position: fixed
@@ -8,7 +8,10 @@
   // The width is a bit imprecise--I just chose a value that looked good! 🙃
   width: min(40em, 80%)
   margin: 0 auto 0.4em
-  padding: 0.4em 1.4em
+  padding: 0 1.4em
+  display: flex
+  justify-content: space-between
+  align-items: center
   border-radius: 0.4em
   box-shadow: 0 0 0.2em gray
   background-color: theme.$color-bg-dark
@@ -20,9 +23,6 @@
     transform: translate(0, 0)
     opacity: 1
   transition: transform 0.5s ease, opacity 0.5s ease
-  display: flex
-  justify-content: space-between
-  align-items: center
 
 .snackbar .dismiss
   @include theme.icon-button

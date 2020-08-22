@@ -1,5 +1,5 @@
-@use "theme"
-@use "snackbar"
+@use 'theme'
+@use 'snackbar'
 
 html, body
   height: 100%
@@ -11,14 +11,15 @@ body
   position: relative
 
 .loading
-  font-style: oblique
+  font-style: italic
 
 .error
-  font-family: monospace
+  font-family: theme.$font-family-monospace
 
 .add-watchlist-item
   display: flex
   align-items: center
+  margin-bottom: 0.4em
   input
     margin: 0
   a
