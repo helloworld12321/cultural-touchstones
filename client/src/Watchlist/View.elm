@@ -8,15 +8,16 @@ import Html.Events as Events
 
 import Types
 import Utils.MoreAttributes as MoreAttributes
+import Utils.MoreEvents as MoreEvents
 import Watchlist.Types
 
 view : Watchlist.Types.Model -> Html.Html Types.Message
 view model =
   case model of
-    Watchlist.Types.Ok { list, newItemText } ->
+    Watchlist.Types.Present { list, newItemText, newItemState } ->
       Html.div
         []
-        [ newItemView newItemText
+        [ newItemView newItemText newItemState
         , viewOfWatchlist list
         ]
     Watchlist.Types.Loading ->
@@ -32,17 +33,30 @@ view model =
 The string parameter `newItemText` is the current contents of the text
 field where you can type in a new watchlist item.
 -}
-newItemView : String -> Html.Html Types.Message
-newItemView newItemText =
-  Html.div
-    [ Attributes.class "add-watchlist-item" ]
-    [ Html.input
-        [ Attributes.type_ "text"
-        , Attributes.value newItemText
-        , Events.onInput Types.EditAddWatchlistInput
-        ]
-        []
-    , Html.a
+newItemView
+  : String
+  -> Result Watchlist.Types.ValidationProblem ()
+  -> Html.Html Types.Message
+newItemView newItemText newItemState =
+  let
+    newItemInput =
+      let
+        baseAttributes =
+          [ Attributes.type_ "text"
+          , Attributes.value newItemText
+          , Events.onInput Types.EditAddWatchlistItemInput
+          , MoreEvents.onKeyUp "Enter" Types.ClickAddWatchlistItem
+          ]
+        attributes =
+          case newItemState of
+            Err (Watchlist.Types.Invalid _) ->
+              Attributes.class "invalid" :: baseAttributes
+            _ ->
+              baseAttributes
+      in
+      Html.input attributes []
+    addItemButton =
+      Html.a
         [ Attributes.href "#"
         , MoreAttributes.role "button"
         , MoreAttributes.tabIndex "0"
@@ -50,7 +64,27 @@ newItemView newItemText =
         , Events.onClick Types.ClickAddWatchlistItem
         ]
         [ Html.text "+" ]
-    ]
+    maybeValidationMessage =
+      case newItemState of
+        Err (Watchlist.Types.Invalid reason) ->
+          Just <|
+            Html.span
+              [ Attributes.class "validation-error" ]
+              [ Html.text reason ]
+        _ ->
+          Nothing
+  in
+  Html.div
+    [ Attributes.class "add-watchlist-item" ]
+    (maybeValidationMessage
+      |> Maybe.map (\validationMessage ->
+        [ newItemInput
+        , addItemButton
+        , validationMessage
+        ]
+      )
+      |> Maybe.withDefault [ newItemInput, addItemButton ]
+    )
 
 {-| If we have a watchlist to display, this function will turn it into HTML. -}
 viewOfWatchlist : Watchlist.Types.Watchlist -> Html.Html Types.Message
@@ -59,3 +93,4 @@ viewOfWatchlist items =
     liOfItem item = Html.li [] [ Html.text item ]
   in
   Html.ul [ Attributes.class "watchlist" ] (items |> List.map liOfItem)
+

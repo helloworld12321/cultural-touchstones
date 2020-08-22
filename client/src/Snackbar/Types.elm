@@ -38,7 +38,7 @@ If the snackbar should be removed from the DOM next, then return Nothing.
 next : TransitionState -> Maybe TransitionState
 next transitionState =
   case transitionState of
-     Hidden -> Just Waxing
-     Waxing -> Just Displayed
-     Displayed -> Just Waning
-     Waning -> Nothing
+    Hidden -> Just Waxing
+    Waxing -> Just Displayed
+    Displayed -> Just Waning
+    Waning -> Nothing

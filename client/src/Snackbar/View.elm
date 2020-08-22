@@ -5,12 +5,12 @@ module Snackbar.View exposing (view)
 import Html
 import Html.Attributes as Attributes
 import Html.Events as Events
-import Json.Decode as Decode
 import Maybe
 
 import Snackbar.Types
 import Types
 import Utils.MoreAttributes as MoreAttributes
+import Utils.MoreEvents as MoreEvents
 
 view : Snackbar.Types.Model -> Maybe.Maybe (Html.Html Types.Message)
 view model =
@@ -27,7 +27,7 @@ view model =
           else
             [ Attributes.class "snackbar" ]
         listeners =
-          [ onTransitionEnd
+          [ MoreEvents.onTransitionEnd
               "transform"
               (Types.SnackbarNextTransitionState
                 (Snackbar.Types.next transitionState)
@@ -53,25 +53,3 @@ dismissButton =
   , Events.onClick message
   ]
   [ Html.text "×" ]
-
-{-| An HTML attribute that listens for the end of a transition involving a
-specific CSS property.
-
-Note that we never listen for all transitionend events, because that would be
-quite noisy--if a transition involves multiple properties, then every one of
-those properties emits its own transitionend event.
--}
-onTransitionEnd : String -> message -> Html.Attribute message
-onTransitionEnd expectedPropertyName message =
-  Events.on
-    "transitionend"
-    (Decode.field "propertyName" Decode.string
-      |> Decode.andThen (\propertyName ->
-        if propertyName == expectedPropertyName then
-          Decode.succeed message
-        else
-          -- In an event handler like this, a decoder failure means "don't
-          -- emit anything".
-          Decode.fail ""
-      )
-    )

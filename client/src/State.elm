@@ -17,98 +17,132 @@ init () =
   )
 
 update : Types.Message -> Types.Model -> (Types.Model, Cmd Types.Message)
-update message oldModel =
-  let
-    doNothing = (oldModel, Cmd.none)
-  in
+update message =
   case message of
     Types.GetWatchlistCompleted (Ok items) ->
-      let
-        maybeNewItemText =
-          case oldModel.watchlistModel of
-            Watchlist.Types.Ok { newItemText } ->
-              Just newItemText
-            _ ->
-              Nothing
-      in
+      setTheWatchlist items
+    Types.GetWatchlistCompleted (Err _) ->
+      respondToGetWatchlistError
+    Types.PutWatchlistCompleted (Ok ()) ->
+      respondToPutWatchlistSuccess
+    Types.PutWatchlistCompleted (Err _) ->
+      respondToPutWatchlistError
+    Types.EditAddWatchlistItemInput newItemText ->
+      updateNewItemInput newItemText
+    Types.ClickAddWatchlistItem ->
+      maybeAddWatchlistItem
+    Types.SnackbarNextTransitionState nextState ->
+      transitionTheSnackbar nextState
+
+{-| Respond to a successful GetWatchlistCompleted event. -}
+setTheWatchlist
+  : Watchlist.Types.Watchlist
+  -> Types.Model
+  -> (Types.Model, Cmd Types.Message)
+setTheWatchlist items oldModel =
+  let
+    maybeOldWatchlist =
+      case oldModel.watchlistModel of
+        Watchlist.Types.Present oldWatchlist -> Just oldWatchlist
+        _ -> Nothing
+  in
+  ( { oldModel
+    | watchlistModel =
+      Watchlist.Types.Present
+        (maybeOldWatchlist
+          |> Maybe.map (\oldWatchlist -> { oldWatchlist | list = items })
+          |> Maybe.withDefault
+            { list = items
+            , newItemText = ""
+            , newItemState = Err Watchlist.Types.Empty
+            }
+        )
+    }
+  , Cmd.none
+  )
+
+{-| Respond to an unsuccessful GetWatchlistCompleted event. -}
+respondToGetWatchlistError : Types.Model -> (Types.Model, Cmd Types.Message)
+respondToGetWatchlistError oldModel =
+  ( { oldModel
+    | snackbarModel =
+        Just
+          { transitionState = Snackbar.Types.Hidden
+          , text = Watchlist.Types.getErrorText
+          }
+    , watchlistModel =
+        Watchlist.Types.Error
+    }
+  , delaySnackbarState Snackbar.Types.Waxing
+  )
+
+{-| Respond to a successful PutWatchlistCompleted event. -}
+respondToPutWatchlistSuccess : Types.Model -> (Types.Model, Cmd Types.Message)
+respondToPutWatchlistSuccess oldModel =
+  -- Now that we've written to the server successfully, we need to get the
+  -- watchlist again to see the changes.
+  -- (We could have just immediately updated the local model and saved
+  -- ourselves an extra HTTP request, but that would have made recovering
+  -- from an error harder.)
+  (oldModel, Watchlist.Ajax.getWatchlist)
+
+{-| Respond to an unsuccessful PutWatchlistCompleted event. -}
+respondToPutWatchlistError : Types.Model -> (Types.Model, Cmd Types.Message)
+respondToPutWatchlistError oldModel =
+  ( { oldModel
+    | snackbarModel =
+        Just
+          { transitionState = Snackbar.Types.Hidden
+          , text = Watchlist.Types.putErrorText
+          }
+    }
+  , delaySnackbarState Snackbar.Types.Waxing
+  )
+
+{-| Respond to an EditAddWatchlistItemInput event. -}
+updateNewItemInput
+  : String
+  -> Types.Model
+  -> (Types.Model, Cmd Types.Message)
+updateNewItemInput newItemText oldModel =
+  case oldModel.watchlistModel of
+    Watchlist.Types.Present { list } ->
       ( { oldModel
         | watchlistModel =
-          Watchlist.Types.Ok
-            { list = items
-            , newItemText = maybeNewItemText |> Maybe.withDefault ""
-            }
+            Watchlist.Types.Present
+              { list = list
+              , newItemText = newItemText
+              , newItemState = Watchlist.Types.validateNewItem newItemText
+              }
         }
       , Cmd.none
       )
-    Types.GetWatchlistCompleted (Err _) ->
-      ( { oldModel
-        | snackbarModel =
-            Just
-              { transitionState = Snackbar.Types.Hidden
-              , text = Watchlist.Types.getErrorText
-              }
-        , watchlistModel =
-            Watchlist.Types.Error
-        }
-      , delaySnackbarState Snackbar.Types.Waxing
-      )
-    Types.PutWatchlistCompleted (Ok ()) ->
-      ( oldModel
-        -- Now that we've written to the server successfully, we need to get
-        -- the watchlist again to see the changes.
-        -- (We could have just immediately updated the local model and saved
-        -- an extra HTTP request, but that would have made recovering from
-        -- an error harder.)
-      , Watchlist.Ajax.getWatchlist
-      )
-    Types.PutWatchlistCompleted (Err _) ->
-      ( { oldModel
-        | snackbarModel =
-            Just
-              { transitionState = Snackbar.Types.Hidden
-              , text = Watchlist.Types.putErrorText
-              }
-        }
-      , delaySnackbarState Snackbar.Types.Waxing
-      )
-    Types.EditAddWatchlistInput newItemText ->
-      -- TODO: Add validation.
-      case oldModel.watchlistModel of
-        Watchlist.Types.Ok { list } ->
-          ( { oldModel
-            | watchlistModel =
-                Watchlist.Types.Ok
-                  { list = list
-                  , newItemText = newItemText
-                  }
-            }
-          , Cmd.none
+    _ ->
+      -- If there isn't currently a watchlist, just ignore this message.
+      (oldModel, Cmd.none)
+
+{-| Respond to a ClickAddWatchlistItem event. -}
+maybeAddWatchlistItem : Types.Model -> (Types.Model, Cmd Types.Message)
+maybeAddWatchlistItem oldModel =
+  case oldModel.watchlistModel of
+    Watchlist.Types.Present { list, newItemText, newItemState } ->
+      case newItemState of
+        Ok () ->
+          ( oldModel
+          , Watchlist.Ajax.putWatchlist <| newItemText :: list
           )
         _ ->
-          -- If there isn't currently a watchlist, just ignore this message.
-          doNothing
-    Types.ClickAddWatchlistItem ->
-      -- TODO: Add validation.
-      case oldModel.watchlistModel of
-        Watchlist.Types.Ok { list, newItemText } ->
-          if not (String.isEmpty newItemText) then
-            ( oldModel
-            , Watchlist.Ajax.putWatchlist (newItemText :: list)
-            )
-          else
-            doNothing
-        _ ->
-          -- If there isn't currently a watchlist, just ignore this message.
-          doNothing
-    Types.SnackbarNextTransitionState nextState ->
-      transitionTheSnackbar oldModel nextState
+          (oldModel, Cmd.none)
+    _ ->
+      -- If there isn't currently a watchlist, just ignore this message.
+      (oldModel, Cmd.none)
 
 {-| Respond to a SnackbarNextTransitionState event. -}
 transitionTheSnackbar
-  : Types.Model
-  -> Maybe Snackbar.Types.TransitionState
+  : Maybe Snackbar.Types.TransitionState
+  -> Types.Model
   -> (Types.Model, Cmd Types.Message)
-transitionTheSnackbar oldModel nextTransitionState =
+transitionTheSnackbar nextTransitionState oldModel =
   oldModel.snackbarModel
     |> Maybe.map (\snackbar ->
       case nextTransitionState of
@@ -169,7 +203,7 @@ transitionTheSnackbar oldModel nextTransitionState =
       , Cmd.none
       )
 
-{-| Emit a SnackbarNextTransitionState message in just a few milliseconds -}
+{-| Emit a SnackbarNextTransitionState message in just a few milliseconds. -}
 delaySnackbarState
   : Snackbar.Types.TransitionState
   -> Cmd Types.Message
@@ -181,11 +215,10 @@ delaySnackbarState nextTransitionState =
   -- rendering the previous state by the time the message is received. (The
   -- snackbar should be robust against that sort of sequence-breaking, but it
   -- would be *better* if it didn't skip steps.
-  delay
-    50
-    (Types.SnackbarNextTransitionState (Just nextTransitionState))
-
-
+  let
+    message = Types.SnackbarNextTransitionState <| Just nextTransitionState
+  in
+  delay 50 message
 
 subscriptions : Types.Model -> Sub Types.Message
 subscriptions _ =
