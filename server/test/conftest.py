@@ -58,6 +58,7 @@ def _insert_watchlist_items(app, items):
             'INSERT INTO watchlist_items (position, contents) VALUES (?, ?)',
             items
         )
+        connection.cursor().execute('COMMIT')
 
 @pytest.fixture
 def _app():
