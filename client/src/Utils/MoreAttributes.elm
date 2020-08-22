@@ -1,6 +1,6 @@
 module Utils.MoreAttributes exposing (ariaLabel, role, tabIndex)
 
-{-| This file contains functions for making HTML attributes,
+{-| This file contains functions for making HTML attributes.
 
 It functions as an expansion on the Html.Attributes module.
 -}

@@ -25,9 +25,4 @@
   align-items: center
 
 .snackbar .dismiss
-  color: theme.$color-fade
-  font-size: larger
-  // I think Sakura might be giving the link a border-bottom on hover. I
-  // don't know why, though.
-  border-bottom: 0
-
+  @include theme.icon-button

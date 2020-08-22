@@ -18,10 +18,25 @@ init () =
 
 update : Types.Message -> Types.Model -> (Types.Model, Cmd Types.Message)
 update message oldModel =
+  let
+    doNothing = (oldModel, Cmd.none)
+  in
   case message of
     Types.GetWatchlistCompleted (Ok items) ->
+      let
+        maybeNewItemText =
+          case oldModel.watchlistModel of
+            Watchlist.Types.Ok { newItemText } ->
+              Just newItemText
+            _ ->
+              Nothing
+      in
       ( { oldModel
-        | watchlistModel = Watchlist.Types.List items
+        | watchlistModel =
+          Watchlist.Types.Ok
+            { list = items
+            , newItemText = maybeNewItemText |> Maybe.withDefault ""
+            }
         }
       , Cmd.none
       )
@@ -30,13 +45,61 @@ update message oldModel =
         | snackbarModel =
             Just
               { transitionState = Snackbar.Types.Hidden
-              , text = Watchlist.Types.errorSnackbarText
+              , text = Watchlist.Types.getErrorText
               }
         , watchlistModel =
             Watchlist.Types.Error
         }
       , delaySnackbarState Snackbar.Types.Waxing
       )
+    Types.PutWatchlistCompleted (Ok ()) ->
+      ( oldModel
+        -- Now that we've written to the server successfully, we need to get
+        -- the watchlist again to see the changes.
+        -- (We could have just immediately updated the local model and saved
+        -- an extra HTTP request, but that would have made recovering from
+        -- an error harder.)
+      , Watchlist.Ajax.getWatchlist
+      )
+    Types.PutWatchlistCompleted (Err _) ->
+      ( { oldModel
+        | snackbarModel =
+            Just
+              { transitionState = Snackbar.Types.Hidden
+              , text = Watchlist.Types.putErrorText
+              }
+        }
+      , delaySnackbarState Snackbar.Types.Waxing
+      )
+    Types.EditAddWatchlistInput newItemText ->
+      -- TODO: Add validation.
+      case oldModel.watchlistModel of
+        Watchlist.Types.Ok { list } ->
+          ( { oldModel
+            | watchlistModel =
+                Watchlist.Types.Ok
+                  { list = list
+                  , newItemText = newItemText
+                  }
+            }
+          , Cmd.none
+          )
+        _ ->
+          -- If there isn't currently a watchlist, just ignore this message.
+          doNothing
+    Types.ClickAddWatchlistItem ->
+      -- TODO: Add validation.
+      case oldModel.watchlistModel of
+        Watchlist.Types.Ok { list, newItemText } ->
+          if not (String.isEmpty newItemText) then
+            ( oldModel
+            , Watchlist.Ajax.putWatchlist (newItemText :: list)
+            )
+          else
+            doNothing
+        _ ->
+          -- If there isn't currently a watchlist, just ignore this message.
+          doNothing
     Types.SnackbarNextTransitionState nextState ->
       transitionTheSnackbar oldModel nextState
 

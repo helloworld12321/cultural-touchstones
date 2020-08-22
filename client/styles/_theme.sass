@@ -11,5 +11,34 @@ $font-family-heading: $font-family-base
 @import "sakura.css/scss/main"
 
 // These are additional variables that aren't used by Sakura.
+
+/** Colors for dark mode: */
 $color-bg-dark: $color-blossom
 $color-text-dark: #ddd
+
+/** A neutral color for adding some more contrast without drawing attention: */
+$color-fg-neutral: $color-text-dark
+
+// I could do with a bit of a border around unselected inputs; they're too
+// low-contrast right now.
+input[type]
+  border: thin solid $color-fg-neutral
+
+/**
+ * Throughout this app, we're going to use anchors as icon buttons. Here's a
+ * set of consistent styles to use for those anchors.
+ */
+@mixin icon-button
+  color: $color-fade
+  font-size: 24pt
+  font-weight: bold
+  // a:hover is already styled pretty heavily, so we're going to need to
+  // override some of that.
+  &:hover
+    // ($color-fade is actually the default for hovered links in Sakura, but
+    // I'm including it for completeness.)
+    color: $color-fade
+    // Sakura gives links a border-bottom on hover, which isn't going to work
+    // on these icon buttons.
+    border-bottom: none
+

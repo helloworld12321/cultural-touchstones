@@ -47,13 +47,12 @@ dismissButton =
   Html.a
   [ Attributes.class "dismiss"
   , Attributes.href "#"
-  , Events.onClick message
   , MoreAttributes.role "button"
   , MoreAttributes.tabIndex "0"
   , MoreAttributes.ariaLabel "Dismiss"
+  , Events.onClick message
   ]
-  -- The "Heavy Multiplication X" symbol.
-  [ Html.text "✖" ]
+  [ Html.text "×" ]
 
 {-| An HTML attribute that listens for the end of a transition involving a
 specific CSS property.
