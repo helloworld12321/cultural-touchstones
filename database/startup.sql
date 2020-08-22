@@ -7,7 +7,8 @@
  */
 
 -- We'll use the `cultural_touchstones` database for everything.
-CREATE OR REPLACE DATABASE cultural_touchstones;
+CREATE OR REPLACE DATABASE cultural_touchstones
+  CHARACTER SET 'utf8mb4';
 
 USE cultural_touchstones;
 

@@ -59,7 +59,6 @@ def _insert_watchlist_items(app, items):
             items
         )
 
-
 @pytest.fixture
 def _app():
     """
