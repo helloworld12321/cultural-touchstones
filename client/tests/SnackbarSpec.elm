@@ -77,6 +77,7 @@ suite =
                 |> Expect.equal maybeTransitionState
             )
         ]
+
     , Test.describe
         "Snackbar.View.view"
         [ [ Snackbar.Types.Hidden, Snackbar.Types.Waning ]
@@ -92,6 +93,7 @@ suite =
                 >> Maybe.map (Query.fromHtml >> Query.has expectedClasses)
                 >> Maybe.withDefault (Expect.fail "No html generated")
               ))
+
         , [ Snackbar.Types.Waxing, Snackbar.Types.Displayed ]
             |> TestUtils.parameterized
               "marks the snackbar as visible during the appropriate transition states"
@@ -113,6 +115,7 @@ suite =
                   )
                 >> Maybe.withDefault (Expect.fail "No html generated")
               ))
+
         , Test.test
             "generates no HTML when there isn't a snackbar"
             (\() ->

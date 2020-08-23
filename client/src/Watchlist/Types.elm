@@ -3,6 +3,7 @@ module Watchlist.Types exposing
   , Watchlist
   , ValidationProblem(..)
   , getErrorText
+  , maxWatchlistItemLength
   , putErrorText
   , validateNewItem
   )
