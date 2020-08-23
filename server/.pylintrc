@@ -365,7 +365,7 @@ spelling-store-unknown-words=no
 # List of note tags to take in consideration, separated by a comma.
 notes=FIXME,XXX,TODO
 
-string-quote=single
+string-quote=single-avoid-escape
 triple-quote=double
 docstring-quote=double
 

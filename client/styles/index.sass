@@ -1,7 +1,47 @@
-@use "theme"
+@use 'theme'
+@use 'snackbar'
+
+html, body
+  height: 100%
+  box-sizing: border-box
+
+body
+  // `position: relative` here means that any absolutely-positioned child
+  // elements should get their coordinates from body tag.
+  position: relative
 
 .loading
-  font-style: oblique
+  font-style: italic
 
 .error
-  font-family: monospace
+  font-family: theme.$font-family-monospace
+
+.add-watchlist-item
+  display: grid
+  grid-template-columns: auto 1fr
+  grid-template-rows: max-content max-content
+  grid-template-areas: "input add-button" "validation validation"
+  margin-bottom: 0.4em
+
+
+.add-watchlist-item input
+  grid-area: input
+  margin: auto
+  &.invalid
+    border-color: theme.$color-warn
+
+.add-watchlist-item a
+  grid-area: add-button
+  @include theme.icon-button
+  // Icon buttons have a lot of space on the top and bottom, so use negative
+  // margins to make them shorter.
+  margin: -0.2em auto -0.2em 0.4em
+
+.add-watchlist-item .validation-error
+  grid-area: validation
+  color: theme.$color-warn
+  font-size: smaller
+
+ul.watchlist
+  list-style: none
+  padding-left: 0

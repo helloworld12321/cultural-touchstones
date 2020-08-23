@@ -6,7 +6,8 @@
  */
 
 -- We'll use the `testing` database for our tests.
-CREATE OR REPLACE DATABASE testing;
+CREATE OR REPLACE DATABASE testing
+  CHARACTER SET 'utf8mb4';
 
 USE testing;
 

@@ -1,0 +1,28 @@
+@use 'theme'
+
+.snackbar
+  position: fixed
+  left:0
+  right:0
+  bottom: 0
+  // The width is a bit imprecise--I just chose a value that looked good! 🙃
+  width: min(40em, 80%)
+  margin: 0 auto 0.4em
+  padding: 0 1.4em
+  display: flex
+  justify-content: space-between
+  align-items: center
+  border-radius: 0.4em
+  box-shadow: 0 0 0.2em gray
+  background-color: theme.$color-bg-dark
+  color: theme.$color-text-dark
+  &.hidden
+    transform: translate(0, 100%)
+    opacity: 0
+  &:not(.hidden)
+    transform: translate(0, 0)
+    opacity: 1
+  transition: transform 0.5s ease, opacity 0.5s ease
+
+.snackbar .dismiss
+  @include theme.icon-button

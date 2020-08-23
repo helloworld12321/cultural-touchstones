@@ -3,27 +3,23 @@ module View exposing (view)
 {-| This file generates HTML for the top-level of the Elm program. -}
 
 import Html
-import Html.Attributes as Attributes
+import Maybe
 
+import Snackbar.View
 import Types
+import Watchlist.View
 
-view : Types.Model -> Html.Html Types.Msg
+view : Types.Model -> Html.Html Types.Message
 view model =
-  case model of
-    Types.Watchlist items ->
-      viewOfWatchlist items
-    Types.Loading ->
-      Html.p [ Attributes.class "loading" ] [ Html.text "Loading…" ]
-    Types.Error ->
-      let
-        errorMessage = "Something went wrong."
-      in
-      Html.p [ Attributes.class "error" ] [ Html.text errorMessage ]
-
-{-| If we have a watchlist to display, this function will turn it into HTML. -}
-viewOfWatchlist : List String -> Html.Html Types.Msg
-viewOfWatchlist items =
   let
-    liOfItem item = Html.li [] [ Html.text item ]
+    { snackbarModel, watchlistModel } = model
+    maybeSnackbarView = Snackbar.View.view snackbarModel
+    watchlistView = Watchlist.View.view watchlistModel
   in
-  Html.ul [ Attributes.class "watchlist" ] (items |> List.map liOfItem)
+  Html.div
+    []
+    (maybeSnackbarView
+      |> Maybe.map (\snackbarView -> [ watchlistView, snackbarView ])
+      |> Maybe.withDefault [ watchlistView ]
+    )
+

@@ -12,6 +12,7 @@ import mariadb
 import pytest
 
 import cultural_touchstones
+from cultural_touchstones.validation import MAX_WATCHLIST_ITEM_LENGTH
 
 # This class represents one of the rows in the 'watchlist-items' database
 # table.
@@ -41,11 +42,7 @@ def _clear_database(app):
     (The table structure is kept intact.)
     """
     with _database_connection(app) as connection:
-        connection.cursor().execute(
-            """
-            TRUNCATE TABLE watchlist_items;
-            """,
-        )
+        connection.cursor().execute('TRUNCATE TABLE watchlist_items')
 
 def _insert_watchlist_items(app, items):
     """
@@ -58,13 +55,10 @@ def _insert_watchlist_items(app, items):
     items = [tuple(item) for item in items]
     with _database_connection(app) as connection:
         connection.cursor().executemany(
-            """
-            INSERT INTO watchlist_items (position, contents)
-                VALUES (?, ?)
-            """,
+            'INSERT INTO watchlist_items (position, contents) VALUES (?, ?)',
             items
         )
-
+        connection.cursor().execute('COMMIT')
 
 @pytest.fixture
 def _app():
@@ -107,9 +101,9 @@ def client_with_data(_app):
             'The Castle of Cagliostro',
             'Nausicaä of the Valley of the Wind',
             '',
-            '.' * cultural_touchstones.db.MAX_WATCHLIST_ITEM_LENGTH,
-            # Test the Santa emoji, since it's an astral-plane character.
-            '🎅' * cultural_touchstones.db.MAX_WATCHLIST_ITEM_LENGTH,
+            '.' * MAX_WATCHLIST_ITEM_LENGTH,
+            # Test the Santa emoji, since he's an astral-plane character.
+            '🎅' * MAX_WATCHLIST_ITEM_LENGTH,
         ])
     ]
     _clear_database(_app)
