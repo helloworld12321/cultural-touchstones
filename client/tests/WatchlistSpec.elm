@@ -8,7 +8,6 @@ the side-effecty parts of Elm's runtime, so it's hard to test.)
 -}
 
 import Html
-import Html.Attributes as Attributes
 import Http
 
 import Expect

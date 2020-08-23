@@ -10,6 +10,8 @@ module Watchlist.Types exposing
 
 {-| These are the types and values used by the watchlist. -}
 
+import Utils exposing (stringLengthUtf8)
+
 type Model
   -- This is the state when we have a watchlist. `list` is  `newItemText` is
   = Present
@@ -55,7 +57,7 @@ validateNewItem : String -> Result ValidationProblem ()
 validateNewItem newItemText =
   if String.isEmpty newItemText then
     Err Empty
-  else if String.length newItemText > maxWatchlistItemLength then
+  else if stringLengthUtf8 newItemText > maxWatchlistItemLength then
     let
       reason =
         "Movie names be at most "
