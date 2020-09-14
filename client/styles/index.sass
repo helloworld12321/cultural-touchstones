@@ -44,3 +44,12 @@ body
 ul.watchlist
   list-style: none
   padding-left: 0
+
+ul.watchlist li
+  width: 100%
+  display: flex
+  align-items: center
+
+ul.watchlist li .delete-button
+  @include theme.icon-button
+  margin-right: 0.4em

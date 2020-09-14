@@ -86,7 +86,14 @@ expectContainsLiFor movieName html =
   Html.div [] [ html ]
     |> Query.fromHtml
     |> Query.find [ Selector.tag "ul" , Selector.class "watchlist" ]
-    |> Query.contains [ Html.li [] [ Html.text movieName ] ]
+    |> Query.findAll
+      [ Selector.tag "li"
+      , Selector.containing
+        [ Selector.class "movie-name"
+        , Selector.containing [ Selector.text movieName ]
+        ]
+      ]
+    |> Query.count (Expect.greaterThan 0)
 
 {-| Given a movie name and some html, expect that the html has a
 <ul class="watchlist">, but expect that <ul> *NOT* to contain a <li> with

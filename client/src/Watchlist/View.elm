@@ -91,7 +91,23 @@ newItemView newItemText newItemState =
 viewOfWatchlist : Watchlist.Types.Watchlist -> Html.Html Types.Message
 viewOfWatchlist items =
   let
-    liOfItem item = Html.li [] [ Html.text item ]
+    deleteItemButton index =
+      Html.a
+        [ Attributes.class "delete-button"
+        , Attributes.href "#"
+        , MoreAttributes.role "button"
+        , MoreAttributes.tabIndex "0"
+        , MoreAttributes.ariaLabel "Delete watchlist item"
+        , Events.onClick <| Types.ClickDeleteWatchlistItem index
+        ]
+        [ Html.text "×" ]
+
+    liOfItem index item =
+      Html.li
+        []
+        [ deleteItemButton index
+        , Html.span [ Attributes.class "movie-name"] [ Html.text item ]
+        ]
   in
-  Html.ul [ Attributes.class "watchlist" ] (items |> List.map liOfItem)
+  Html.ul [ Attributes.class "watchlist" ] (items |> List.indexedMap liOfItem)
 

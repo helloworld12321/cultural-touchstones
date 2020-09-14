@@ -6,7 +6,7 @@ import Maybe
 
 import Snackbar.Types
 import Types
-import Utils exposing (delay)
+import Utils exposing (delay, dropIndices)
 import Watchlist.Ajax
 import Watchlist.Types
 
@@ -31,6 +31,8 @@ update message =
       updateNewItemInput newItemText
     Types.ClickAddWatchlistItem ->
       maybeAddWatchlistItem
+    Types.ClickDeleteWatchlistItem position ->
+      maybeDeleteWatchlistItem position
     Types.SnackbarNextTransitionState nextState ->
       transitionTheSnackbar nextState
 
@@ -140,6 +142,32 @@ maybeAddWatchlistItem oldModel =
     _ ->
       -- If there isn't currently a watchlist, just ignore this message.
       (oldModel, Cmd.none)
+
+{-| Respond to a ClickDeleteWatchlistItem event.
+
+Here, `position` is the index of the item in the watchlist we want to delete,
+where 0 is the item at the top of the watchlist. Provided the given position
+is actually a valid index, we're going to ask the server to remove the item at
+that position from the watchlist.
+-}
+maybeDeleteWatchlistItem
+  : Int
+  -> Types.Model
+  -> (Types.Model, Cmd Types.Message)
+maybeDeleteWatchlistItem position oldModel =
+  case oldModel.watchlistModel of
+    Watchlist.Types.Present { list } ->
+      if 0 <= position && position < List.length list then
+        ( oldModel
+        , Watchlist.Ajax.putWatchlist <| dropIndices [ position ] list
+        )
+      else
+        -- Don't bother with an AJAX call if it's not going to have any effect.
+        (oldModel, Cmd.none)
+    _ ->
+      -- If there isn't currently a watchlist, just ignore this message.
+      (oldModel, Cmd.none)
+
 
 {-| Respond to a SnackbarNextTransitionState event. -}
 transitionTheSnackbar

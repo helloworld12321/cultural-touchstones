@@ -1,5 +1,6 @@
 module Utils exposing
   ( delay
+  , dropIndices
   , flip
   , stringLengthUtf8
  )
@@ -17,6 +18,22 @@ delay millis message =
   -- Adapted from https://stackoverflow.com/a/44354637
   Process.sleep millis
   |> Task.perform (\() -> message)
+
+{-| Given a list, omit elements at certain positions. -}
+dropIndices : List Int -> List a -> List a
+dropIndices positions list =
+  list |> indexedFilter (\i _ -> not <| List.member i positions)
+
+{-| Same as List.filter, but the function is also passed the index of each
+element (starting at zero).
+-}
+indexedFilter : (Int -> a -> Bool) -> List a -> List a
+indexedFilter shouldKeep list =
+  list
+    |> List.indexedMap (\i element ->
+      if shouldKeep i element then Just element else Nothing
+    )
+    |> List.filterMap identity
 
 {-| Given a two-argument function, reverse the order of its arguments. -}
 flip : (b -> a -> c) -> a -> b -> c

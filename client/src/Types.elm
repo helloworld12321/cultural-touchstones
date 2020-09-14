@@ -31,6 +31,11 @@ type Message
   -- button.
   | ClickAddWatchlistItem
 
+  -- We receive this message when the user clicks the "delete" button on a
+  -- watchlist item. Here, the the int is the position of the watchlist item
+  -- to be deleted, where position 0 is the first element in the list.
+  | ClickDeleteWatchlistItem Int
+
   -- We receive this message when a snackbar finishes one state of its
   -- animation, and is ready to transition into the next state.
   -- The TransitionState parameter indicates what the next transition state
