@@ -57,7 +57,8 @@ newItemView newItemText newItemState =
       Html.input attributes []
     addItemButton =
       Html.a
-        [ Attributes.href "#"
+        [ Attributes.class "add-button"
+        , Attributes.href "#"
         , MoreAttributes.role "button"
         , MoreAttributes.tabIndex "0"
         , MoreAttributes.ariaLabel "Add watchlist item"

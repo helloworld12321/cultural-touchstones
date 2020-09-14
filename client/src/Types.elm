@@ -25,7 +25,7 @@ type Message
 
   -- We receive this message when the edits the "add watchlist item" text
   -- field. The string parameter is the current contents of that field.
-  | EditAddWatchlistItemInput (String)
+  | EditAddWatchlistItemInput String
 
   -- We receive this message when the user clicks the "add watchlist item"
   -- button.

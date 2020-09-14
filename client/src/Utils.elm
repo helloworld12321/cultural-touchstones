@@ -1,8 +1,6 @@
 module Utils exposing
   ( delay
   , flip
-  , isLowSurrogate
-  , isHighSurrogate
   , stringLengthUtf8
  )
 
@@ -21,7 +19,7 @@ delay millis message =
   |> Task.perform (\() -> message)
 
 {-| Given a two-argument function, reverse the order of its arguments. -}
-flip : (a -> b -> c) -> b -> a -> c
+flip : (b -> a -> c) -> a -> b -> c
 flip function a b =
   function b a
 

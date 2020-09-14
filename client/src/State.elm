@@ -121,7 +121,11 @@ updateNewItemInput newItemText oldModel =
       -- If there isn't currently a watchlist, just ignore this message.
       (oldModel, Cmd.none)
 
-{-| Respond to a ClickAddWatchlistItem event. -}
+{-| Respond to a ClickAddWatchlistItem event.
+
+This function checks if there's a new watchlist item ready, and if there is,
+it asks the server to prepend that item to the watchlist.
+-}
 maybeAddWatchlistItem : Types.Model -> (Types.Model, Cmd Types.Message)
 maybeAddWatchlistItem oldModel =
   case oldModel.watchlistModel of

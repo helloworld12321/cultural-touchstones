@@ -39,7 +39,8 @@ type ValidationProblem
   -- The text field is empty. (This case is handled specially.)
   | Empty
 
-
+{-| The list of movies you want to watch. Position 0 is at the top of the list.
+-}
 type alias Watchlist = List String
 
 {-| This text should be displayed when getting the watchlist failed. -}
