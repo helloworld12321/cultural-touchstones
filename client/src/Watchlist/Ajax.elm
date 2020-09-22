@@ -36,6 +36,6 @@ putWatchlist : Watchlist.Types.Watchlist -> Types.PseudoCmd Types.Message
 putWatchlist watchlist =
   Types.PutCmd
     { url = "/api/watchlist"
-    , body = Http.jsonBody (encodeWatchlist watchlist)
+    , body = encodeWatchlist watchlist
     , expect = Http.expectWhatever Types.PutWatchlistCompleted
     }

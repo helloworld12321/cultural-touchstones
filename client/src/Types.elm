@@ -9,6 +9,7 @@ module Types exposing
 {-| These are the types and values used at the top-level of the Elm program -}
 
 import Http
+import Json.Encode as Encode
 
 import Snackbar.Types
 import Utils exposing (wait)
@@ -67,8 +68,8 @@ type PseudoCmd msg
   -- Try to make a GET request.
   | GetCmd { url : String, expect : Http.Expect msg }
 
-  -- Try to send a PUT request.
-  | PutCmd { url : String, body : Http.Body, expect : Http.Expect msg }
+  -- Try to send a PUT request with a JSON body.
+  | PutCmd { url : String, body : Encode.Value, expect : Http.Expect msg }
 
   -- Wait a certain amount of milliseconds (the Float parameter), and then send
   -- back a Message to Elm (the Message parameter).
@@ -77,8 +78,16 @@ type PseudoCmd msg
 pseudoCmdToRealCmd : PseudoCmd msg -> Cmd msg
 pseudoCmdToRealCmd pseudoCmd =
   case pseudoCmd of
-    NoCmd -> Cmd.none
-    GetCmd params -> Http.get params
-    PutCmd params -> MoreHttp.put params
-    WaitCmd millis message -> wait millis message
+    NoCmd ->
+      Cmd.none
+    GetCmd params ->
+      Http.get params
+    PutCmd params ->
+      MoreHttp.put
+        { url = params.url
+        , body = Http.jsonBody params.body
+        , expect = params.expect
+        }
+    WaitCmd millis message ->
+      wait millis message
 

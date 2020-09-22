@@ -1,6 +1,6 @@
-module TestUtils exposing (parameterized)
+module TestUtils.MoreTest exposing (parameterized)
 
-{-| This file contains some helper functions for testing. -}
+{-| This file contains some helper functions for writing tests. -}
 
 import Expect
 import Test

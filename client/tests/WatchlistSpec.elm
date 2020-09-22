@@ -9,6 +9,7 @@ the side-effecty parts of Elm's runtime, so it's hard to test.)
 
 import Html
 import Http
+import Json.Decode as Decode
 
 import Expect
 import Test
@@ -20,6 +21,9 @@ import Types
 import View
 import Watchlist.Types
 import Watchlist.View
+
+import TestUtils.MoreExpect as MoreExpect
+import TestUtils.MoreTest as MoreTest
 
 {-| This function takes an application in the initial state, gives it a
 series of messages of your discretion, and returns the model updated in
@@ -314,6 +318,77 @@ suite =
                 |> Query.fromHtml
                 |> Query.findAll [ Selector.class "validation-error" ]
                 |> Query.count (Expect.equal 0)
+            )
+        ]
+    , Test.describe
+        "When you submit a new movie name"
+        [ Test.test
+            "If the movie name is the empty string, ignores you."
+            (\() ->
+              let
+                model =
+                  modelFromMessages
+                    [ Types.GetWatchlistCompleted <| Ok movies
+                    , Types.EditAddWatchlistItemInput ""
+                    ]
+                (_, cmd) =
+                  model |> State.update Types.ClickAddWatchlistItem
+              in
+              cmd |> Expect.equal Types.NoCmd
+            )
+        , Test.test
+            "If the movie name is too long string, ignores you"
+            (\() ->
+              let
+                model =
+                  modelFromMessages
+                    [ Types.GetWatchlistCompleted <| Ok movies
+                    , Types.EditAddWatchlistItemInput
+                        (String.repeat
+                          (Watchlist.Types.maxWatchlistItemLength + 1)
+                          "."
+                        )
+                    ]
+                (_, cmd) =
+                  model |> State.update Types.ClickAddWatchlistItem
+              in
+              cmd |> Expect.equal Types.NoCmd
+            )
+        , let
+            exampleMovieNames =
+              [ "How Do You Live"
+              , String.repeat Watchlist.Types.maxWatchlistItemLength "."
+              , String.repeat Watchlist.Types.maxWatchlistItemLength "🎅"
+              ]
+          in
+          exampleMovieNames |> MoreTest.parameterized
+            "if the movie name is valid, makes a PUT request that prepends the movie name to the watchlist"
+            (\movieName ->
+              let
+                model =
+                  modelFromMessages
+                    [ Types.GetWatchlistCompleted <| Ok movies
+                    , Types.EditAddWatchlistItemInput movieName
+                    ]
+                (_, cmd) =
+                  model |> State.update Types.ClickAddWatchlistItem
+              in
+              case cmd of
+                Types.PutCmd { body } ->
+                  let
+                    maybeNewWatchlist =
+                      body |> Decode.decodeValue (Decode.list Decode.string)
+                  in
+                  case maybeNewWatchlist of
+                    Ok (first :: rest) ->
+                      MoreExpect.and
+                      [ first |> Expect.equal movieName
+                      , rest |> Expect.equal movies
+                      ]
+                    _ ->
+                      Expect.fail "The PUT request doesn't have a non-empty list of strings as its body"
+                _ ->
+                  Expect.fail "Does not make a PUT request."
             )
         ]
     ]
