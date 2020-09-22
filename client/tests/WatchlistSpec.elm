@@ -64,9 +64,9 @@ pageViewFromMessages =
   modelFromMessages >> View.view
 
 
-{-| This is a list of movie names for testing. -}
-movies : Watchlist.Types.Watchlist
-movies =
+{-| This is a long list of movie names for testing. -}
+miyazakiMovies : Watchlist.Types.Watchlist
+miyazakiMovies =
   [ "The Castle of Cagliostro"
   , "Nausicaä of the Valley of the Wind"
   , "Castle in the Sky"
@@ -80,6 +80,9 @@ movies =
   , "The Wind Rises"
   ]
 
+{-| This is a short list of movie names for testing. -}
+twilightMovies : Watchlist.Types.Watchlist
+twilightMovies = [ "Twilight", "New Moon", "Eclipse" ]
 
 {-| Given a movie name and some html, expect that the html has a
 <ul class="watchlist">, and expect that inside that <ul> there's a <li> with
@@ -110,6 +113,7 @@ expectDoesNotContainLiFor movieName html =
     |> Query.find [ Selector.tag "ul" , Selector.class "watchlist" ]
     |> Query.findAll
       [ Selector.tag "li"
+      , Selector.class "movie"
       , Selector.containing [ Selector.text movieName ]
       ]
     |> Query.count (Expect.equal 0)
@@ -144,15 +148,33 @@ suite =
             )
 
         , Test.test
-            "contains a <ul class=\"watchlist\"> with a <li> for each watchlist item"
+            "contains a <ul class=\"watchlist\"> with a <li class=\"movie\"> for each watchlist item"
             (\() ->
               let
                 viewHtml =
                   watchlistViewFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok movies ]
+                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies ]
               in
               viewHtml
-                |> Expect.all (List.map expectContainsLiFor movies)
+                |> Expect.all (List.map expectContainsLiFor miyazakiMovies)
+            )
+        , Test.test
+            "contains <li class=\"movie\">s that have one `delete-button` apiece"
+            (\() ->
+              let
+                viewHtml =
+                  watchlistViewFromMessages
+                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies ]
+              in
+              Html.div [] [ viewHtml ]
+                |> Query.fromHtml
+                |> Query.find [ Selector.tag "ul", Selector.class "watchlist" ]
+                |> Query.findAll [ Selector.tag "li", Selector.class "movie"]
+                |> Query.each (\li ->
+                  li
+                    |> Query.findAll [ Selector.class "delete-button" ]
+                    |> Query.count (Expect.equal 1)
+                )
             )
         , Test.test
             "Contains an `add-watchlist-item` section"
@@ -227,7 +249,7 @@ suite =
               let
                 viewHtml =
                   watchlistViewFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok movies
+                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
                     , Types.EditAddWatchlistItemInput "How Do You Live?"
                     , Types.ClickAddWatchlistItem
                     , Types.PutWatchlistCompleted <| Err <| Http.BadStatus 400
@@ -236,7 +258,7 @@ suite =
               viewHtml
                 |> Expect.all
                   (expectDoesNotContainLiFor "How Do You Live?"
-                    :: List.map expectContainsLiFor movies
+                    :: List.map expectContainsLiFor miyazakiMovies
                   )
             )
 
@@ -246,7 +268,7 @@ suite =
               let
                 viewHtml =
                   pageViewFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok movies
+                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
                     , Types.EditAddWatchlistItemInput "How Do You Live?"
                     , Types.ClickAddWatchlistItem
                     , Types.PutWatchlistCompleted <| Err <| Http.BadStatus 400
@@ -267,7 +289,7 @@ suite =
               let
                 viewHtml =
                   pageViewFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok movies
+                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
                     , Types.EditAddWatchlistItemInput
                         (String.repeat
                           (Watchlist.Types.maxWatchlistItemLength + 1)
@@ -286,7 +308,7 @@ suite =
               let
                 viewHtml =
                   pageViewFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok movies
+                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
                     , Types.EditAddWatchlistItemInput
                         (String.repeat
                           Watchlist.Types.maxWatchlistItemLength
@@ -305,7 +327,7 @@ suite =
               let
                 viewHtml =
                   pageViewFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok movies
+                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
                     , Types.EditAddWatchlistItemInput
                         (String.repeat
                           Watchlist.Types.maxWatchlistItemLength
@@ -320,6 +342,7 @@ suite =
                 |> Query.count (Expect.equal 0)
             )
         ]
+
     , Test.describe
         "When you submit a new movie name"
         [ Test.test
@@ -328,7 +351,7 @@ suite =
               let
                 model =
                   modelFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok movies
+                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
                     , Types.EditAddWatchlistItemInput ""
                     ]
                 (_, cmd) =
@@ -342,7 +365,7 @@ suite =
               let
                 model =
                   modelFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok movies
+                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
                     , Types.EditAddWatchlistItemInput
                         (String.repeat
                           (Watchlist.Types.maxWatchlistItemLength + 1)
@@ -367,7 +390,7 @@ suite =
               let
                 model =
                   modelFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok movies
+                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
                     , Types.EditAddWatchlistItemInput movieName
                     ]
                 (_, cmd) =
@@ -383,10 +406,55 @@ suite =
                     Ok (first :: rest) ->
                       MoreExpect.and
                       [ first |> Expect.equal movieName
-                      , rest |> Expect.equal movies
+                      , rest |> Expect.equal miyazakiMovies
                       ]
                     _ ->
                       Expect.fail "The PUT request doesn't have a non-empty list of strings as its body"
+                _ ->
+                  Expect.fail "Does not make a PUT request."
+            )
+        ]
+
+    , Test.describe
+        "When you delete a movie"
+        [ [-1, 5] |> MoreTest.parameterized
+            "If the position given is too high or too low, ignores you"
+            (\position ->
+              let
+                model =
+                  modelFromMessages
+                    [ Types.GetWatchlistCompleted <| Ok twilightMovies ]
+                (_, cmd) =
+                  model
+                    |> State.update (Types.ClickDeleteWatchlistItem position)
+              in
+              cmd |> Expect.equal Types.NoCmd
+            )
+        , let
+            -- Each test case consists of a position to delete, and a list of
+            -- what movies should be left over after deleting that position.
+            testCases =
+              [ (0, [ "New Moon", "Eclipse" ])
+              , (1, [ "Twilight", "Eclipse" ])
+              , (2, [ "Twilight", "New Moon" ])
+              ]
+          in
+          testCases |> MoreTest.parameterized
+            "If the position given is a valid list index, makes a PUT request that elides the corresponding movie from the watchlist."
+            (\(position, expectedNewWatchlist) ->
+              let
+                model =
+                  modelFromMessages
+                    [ Types.GetWatchlistCompleted <| Ok twilightMovies ]
+                (_, cmd) =
+                  model
+                    |> State.update (Types.ClickDeleteWatchlistItem position)
+              in
+              case cmd of
+                Types.PutCmd { body } ->
+                    body
+                      |> Decode.decodeValue (Decode.list Decode.string)
+                      |> Expect.equal (Ok expectedNewWatchlist)
                 _ ->
                   Expect.fail "Does not make a PUT request."
             )

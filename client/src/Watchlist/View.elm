@@ -104,9 +104,9 @@ viewOfWatchlist items =
 
     liOfItem index item =
       Html.li
-        []
+        [ Attributes.class "movie" ]
         [ deleteItemButton index
-        , Html.span [ Attributes.class "movie-name"] [ Html.text item ]
+        , Html.span [ Attributes.class "movie-name" ] [ Html.text item ]
         ]
   in
   Html.ul [ Attributes.class "watchlist" ] (items |> List.indexedMap liOfItem)
