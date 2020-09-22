@@ -16,7 +16,7 @@ import Snackbar.Types
 import Snackbar.View
 import Utils exposing (flip)
 
-import TestUtils
+import TestUtils.MoreTest as MoreTest
 
 {-| This function gets the initial state of the application, and then modifies
 that state to include a snackbar, hidden, with the given text.
@@ -44,7 +44,6 @@ viewFromMessage snackbarText =
   >> Tuple.first
   >> .snackbarModel
   >> Snackbar.View.view
-
 
 transitionStateFuzzer : Fuzz.Fuzzer Snackbar.Types.TransitionState
 transitionStateFuzzer =
@@ -81,7 +80,7 @@ suite =
     , Test.describe
         "Snackbar.View.view"
         [ [ Snackbar.Types.Hidden, Snackbar.Types.Waning ]
-            |> TestUtils.parameterized
+            |> MoreTest.parameterized
               "marks the snackbar as hidden during the appropriate transition states"
               (let
                 expectedClasses =
@@ -95,7 +94,7 @@ suite =
               ))
 
         , [ Snackbar.Types.Waxing, Snackbar.Types.Displayed ]
-            |> TestUtils.parameterized
+            |> MoreTest.parameterized
               "marks the snackbar as visible during the appropriate transition states"
               (let
                 expectedClasses =

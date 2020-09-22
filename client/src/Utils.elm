@@ -1,8 +1,7 @@
 module Utils exposing
-  ( delay
+  ( wait
+  , dropIndices
   , flip
-  , isLowSurrogate
-  , isHighSurrogate
   , stringLengthUtf8
  )
 
@@ -14,14 +13,30 @@ import Task
 import Hex
 
 {-| Wait a variable amount of milliseconds and then send a message. -}
-delay : Float -> message -> Cmd message
-delay millis message =
+wait : Float -> message -> Cmd message
+wait millis message =
   -- Adapted from https://stackoverflow.com/a/44354637
   Process.sleep millis
   |> Task.perform (\() -> message)
 
+{-| Given a list, omit elements at certain positions. -}
+dropIndices : List Int -> List a -> List a
+dropIndices positions list =
+  list |> indexedFilter (\i _ -> not <| List.member i positions)
+
+{-| Same as List.filter, but the function is also passed the index of each
+element (starting at zero).
+-}
+indexedFilter : (Int -> a -> Bool) -> List a -> List a
+indexedFilter shouldKeep list =
+  list
+    |> List.indexedMap (\i element ->
+      if shouldKeep i element then Just element else Nothing
+    )
+    |> List.filterMap identity
+
 {-| Given a two-argument function, reverse the order of its arguments. -}
-flip : (a -> b -> c) -> b -> a -> c
+flip : (b -> a -> c) -> a -> b -> c
 flip function a b =
   function b a
 

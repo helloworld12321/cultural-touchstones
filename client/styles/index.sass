@@ -23,14 +23,13 @@ body
   grid-template-areas: "input add-button" "validation validation"
   margin-bottom: 0.4em
 
-
 .add-watchlist-item input
   grid-area: input
   margin: auto
   &.invalid
     border-color: theme.$color-warn
 
-.add-watchlist-item a
+.add-watchlist-item .add-button
   grid-area: add-button
   @include theme.icon-button
   // Icon buttons have a lot of space on the top and bottom, so use negative
@@ -45,3 +44,12 @@ body
 ul.watchlist
   list-style: none
   padding-left: 0
+
+ul.watchlist li
+  width: 100%
+  display: flex
+  align-items: center
+
+ul.watchlist li .delete-button
+  @include theme.icon-button
+  margin-right: 0.4em

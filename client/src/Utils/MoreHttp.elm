@@ -8,12 +8,7 @@ It functions as an expansion on the Http module.
 import Http
 
 {-| This function makes a PUT request to a specified URL. -}
-put
-  : { url : String
-    , body : Http.Body
-    , expect : Http.Expect msg
-    }
-  -> Cmd msg
+put : { url : String, body : Http.Body, expect : Http.Expect msg } -> Cmd msg
 put theRequest =
   Http.request
     { method = "PUT"
