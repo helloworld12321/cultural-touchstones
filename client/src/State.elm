@@ -6,17 +6,20 @@ import Maybe
 
 import Snackbar.Types
 import Types
-import Utils exposing (delay, dropIndices)
+import Utils exposing (dropIndices)
 import Watchlist.Ajax
 import Watchlist.Types
 
-init : Types.Flags -> (Types.Model, Cmd Types.Message)
+init : Types.Flags -> (Types.Model, Types.PseudoCmd Types.Message)
 init () =
   ( { snackbarModel = Nothing, watchlistModel = Watchlist.Types.Loading }
   , Watchlist.Ajax.getWatchlist
   )
 
-update : Types.Message -> Types.Model -> (Types.Model, Cmd Types.Message)
+update
+  : Types.Message
+  -> Types.Model
+  -> (Types.Model, Types.PseudoCmd Types.Message)
 update message =
   case message of
     Types.GetWatchlistCompleted (Ok items) ->
@@ -40,7 +43,7 @@ update message =
 setTheWatchlist
   : Watchlist.Types.Watchlist
   -> Types.Model
-  -> (Types.Model, Cmd Types.Message)
+  -> (Types.Model, Types.PseudoCmd Types.Message)
 setTheWatchlist items oldModel =
   let
     maybeOldWatchlist =
@@ -60,11 +63,13 @@ setTheWatchlist items oldModel =
             }
         )
     }
-  , Cmd.none
+  , Types.NoCmd
   )
 
 {-| Respond to an unsuccessful GetWatchlistCompleted event. -}
-respondToGetWatchlistError : Types.Model -> (Types.Model, Cmd Types.Message)
+respondToGetWatchlistError
+  : Types.Model
+  -> (Types.Model, Types.PseudoCmd Types.Message)
 respondToGetWatchlistError oldModel =
   ( { oldModel
     | snackbarModel =
@@ -79,7 +84,9 @@ respondToGetWatchlistError oldModel =
   )
 
 {-| Respond to a successful PutWatchlistCompleted event. -}
-respondToPutWatchlistSuccess : Types.Model -> (Types.Model, Cmd Types.Message)
+respondToPutWatchlistSuccess
+  : Types.Model
+  -> (Types.Model, Types.PseudoCmd Types.Message)
 respondToPutWatchlistSuccess oldModel =
   -- Now that we've written to the server successfully, we need to get the
   -- watchlist again to see the changes.
@@ -89,7 +96,9 @@ respondToPutWatchlistSuccess oldModel =
   (oldModel, Watchlist.Ajax.getWatchlist)
 
 {-| Respond to an unsuccessful PutWatchlistCompleted event. -}
-respondToPutWatchlistError : Types.Model -> (Types.Model, Cmd Types.Message)
+respondToPutWatchlistError
+  : Types.Model
+  -> (Types.Model, Types.PseudoCmd Types.Message)
 respondToPutWatchlistError oldModel =
   ( { oldModel
     | snackbarModel =
@@ -105,7 +114,7 @@ respondToPutWatchlistError oldModel =
 updateNewItemInput
   : String
   -> Types.Model
-  -> (Types.Model, Cmd Types.Message)
+  -> (Types.Model, Types.PseudoCmd Types.Message)
 updateNewItemInput newItemText oldModel =
   case oldModel.watchlistModel of
     Watchlist.Types.Present { list } ->
@@ -117,18 +126,20 @@ updateNewItemInput newItemText oldModel =
               , newItemState = Watchlist.Types.validateNewItem newItemText
               }
         }
-      , Cmd.none
+      , Types.NoCmd
       )
     _ ->
       -- If there isn't currently a watchlist, just ignore this message.
-      (oldModel, Cmd.none)
+      (oldModel, Types.NoCmd)
 
 {-| Respond to a ClickAddWatchlistItem event.
 
 This function checks if there's a new watchlist item ready, and if there is,
 it asks the server to prepend that item to the watchlist.
 -}
-maybeAddWatchlistItem : Types.Model -> (Types.Model, Cmd Types.Message)
+maybeAddWatchlistItem
+  : Types.Model
+  -> (Types.Model, Types.PseudoCmd Types.Message)
 maybeAddWatchlistItem oldModel =
   case oldModel.watchlistModel of
     Watchlist.Types.Present { list, newItemText, newItemState } ->
@@ -138,10 +149,10 @@ maybeAddWatchlistItem oldModel =
           , Watchlist.Ajax.putWatchlist <| newItemText :: list
           )
         _ ->
-          (oldModel, Cmd.none)
+          (oldModel, Types.NoCmd)
     _ ->
       -- If there isn't currently a watchlist, just ignore this message.
-      (oldModel, Cmd.none)
+      (oldModel, Types.NoCmd)
 
 {-| Respond to a ClickDeleteWatchlistItem event.
 
@@ -153,7 +164,7 @@ that position from the watchlist.
 maybeDeleteWatchlistItem
   : Int
   -> Types.Model
-  -> (Types.Model, Cmd Types.Message)
+  -> (Types.Model, Types.PseudoCmd Types.Message)
 maybeDeleteWatchlistItem position oldModel =
   case oldModel.watchlistModel of
     Watchlist.Types.Present { list } ->
@@ -163,17 +174,17 @@ maybeDeleteWatchlistItem position oldModel =
         )
       else
         -- Don't bother with an AJAX call if it's not going to have any effect.
-        (oldModel, Cmd.none)
+        (oldModel, Types.NoCmd)
     _ ->
       -- If there isn't currently a watchlist, just ignore this message.
-      (oldModel, Cmd.none)
+      (oldModel, Types.NoCmd)
 
 
 {-| Respond to a SnackbarNextTransitionState event. -}
 transitionTheSnackbar
   : Maybe Snackbar.Types.TransitionState
   -> Types.Model
-  -> (Types.Model, Cmd Types.Message)
+  -> (Types.Model, Types.PseudoCmd Types.Message)
 transitionTheSnackbar nextTransitionState oldModel =
   oldModel.snackbarModel
     |> Maybe.map (\snackbar ->
@@ -197,7 +208,7 @@ transitionTheSnackbar nextTransitionState oldModel =
                   }
             }
           -- We'll just wait for the HTML to emit a transitionend event.
-          , Cmd.none
+          , Types.NoCmd
           )
         Just Snackbar.Types.Displayed ->
           ( { oldModel
@@ -208,7 +219,7 @@ transitionTheSnackbar nextTransitionState oldModel =
                   }
             }
           -- Wait for the user to click the dismiss button.
-          , Cmd.none
+          , Types.NoCmd
           )
         Just Snackbar.Types.Waning ->
           ( { oldModel
@@ -219,26 +230,26 @@ transitionTheSnackbar nextTransitionState oldModel =
                   }
             }
           -- Again, we'll wait for a transitionend event before moving on.
-          , Cmd.none
+          , Types.NoCmd
           )
         Nothing ->
           ( { oldModel
             | snackbarModel = Nothing
             }
-          , Cmd.none
+          , Types.NoCmd
           )
     )
     |> Maybe.withDefault
       -- There should always be an existing snackbar when we receive this
       -- message, but if there isn't, we can just ignore the message, I guess.
       ( oldModel
-      , Cmd.none
+      , Types.NoCmd
       )
 
 {-| Emit a SnackbarNextTransitionState message in just a few milliseconds. -}
 delaySnackbarState
   : Snackbar.Types.TransitionState
-  -> Cmd Types.Message
+  -> Types.PseudoCmd Types.Message
 delaySnackbarState nextTransitionState =
   -- A short delay, like 50 milliseconds, makes sure that Elm renders the
   -- previous state before the next state of the transition starts See:
@@ -250,7 +261,7 @@ delaySnackbarState nextTransitionState =
   let
     message = Types.SnackbarNextTransitionState <| Just nextTransitionState
   in
-  delay 50 message
+  Types.WaitCmd 50 message
 
 subscriptions : Types.Model -> Sub Types.Message
 subscriptions _ =

@@ -1,10 +1,18 @@
-module Types exposing (Flags, Model, Message(..))
+module Types exposing
+  ( Flags
+  , Model
+  , Message(..)
+  , PseudoCmd(..)
+  , pseudoCmdToRealCmd
+  )
 
 {-| These are the types and values used at the top-level of the Elm program -}
 
 import Http
 
 import Snackbar.Types
+import Utils exposing (wait)
+import Utils.MoreHttp as MoreHttp
 import Watchlist.Types
 
 type alias Flags = ()
@@ -43,3 +51,34 @@ type Message
   -- This allows the transition animation to skip backwards or forwards as
   -- necessary.
   | SnackbarNextTransitionState (Maybe Snackbar.Types.TransitionState)
+
+{-| Each PseudoCmd msg unambiguously represents a `Cmd msg`, except that we
+can manipulate a PseudoCmd and do pattern-matching on it. We use this type
+internally, but before we send the value to the Elm runtime, we turn it into a
+real `Cmd Message`.
+
+This type exists to provide a less-opaque, easier-to-test version of Cmd;
+see https://github.com/elm-community/elm-test/issues/220.
+-}
+type PseudoCmd msg
+  -- The representation of `Cmd.none`.
+  = NoCmd
+
+  -- Try to make a GET request.
+  | GetCmd { url : String, expect : Http.Expect msg }
+
+  -- Try to send a PUT request.
+  | PutCmd { url : String, body : Http.Body, expect : Http.Expect msg }
+
+  -- Wait a certain amount of milliseconds (the Float parameter), and then send
+  -- back a Message to Elm (the Message parameter).
+  | WaitCmd Float msg
+
+pseudoCmdToRealCmd : PseudoCmd msg -> Cmd msg
+pseudoCmdToRealCmd pseudoCmd =
+  case pseudoCmd of
+    NoCmd -> Cmd.none
+    GetCmd params -> Http.get params
+    PutCmd params -> MoreHttp.put params
+    WaitCmd millis message -> wait millis message
+

@@ -1,5 +1,5 @@
 module Utils exposing
-  ( delay
+  ( wait
   , dropIndices
   , flip
   , stringLengthUtf8
@@ -13,8 +13,8 @@ import Task
 import Hex
 
 {-| Wait a variable amount of milliseconds and then send a message. -}
-delay : Float -> message -> Cmd message
-delay millis message =
+wait : Float -> message -> Cmd message
+wait millis message =
   -- Adapted from https://stackoverflow.com/a/44354637
   Process.sleep millis
   |> Task.perform (\() -> message)

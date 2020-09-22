@@ -7,7 +7,6 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 
 import Types
-import Utils.MoreHttp as MoreHttp
 import Watchlist.Types
 
 {-| This decoder parses the response from the GET /api/watchlist endpoint. -}
@@ -22,9 +21,9 @@ encodeWatchlist =
 
 
 {-| This command requests the watchlist from the server. -}
-getWatchlist : Cmd Types.Message
+getWatchlist : Types.PseudoCmd Types.Message
 getWatchlist =
-  Http.get
+  Types.GetCmd
     { url = "/api/watchlist"
     , expect =
         Http.expectJson Types.GetWatchlistCompleted watchlistDecoder
@@ -33,9 +32,9 @@ getWatchlist =
 {-| This command sends the watchlist to the server (replacing the existing
 watchlist).
 -}
-putWatchlist : Watchlist.Types.Watchlist -> Cmd Types.Message
+putWatchlist : Watchlist.Types.Watchlist -> Types.PseudoCmd Types.Message
 putWatchlist watchlist =
-  MoreHttp.put
+  Types.PutCmd
     { url = "/api/watchlist"
     , body = Http.jsonBody (encodeWatchlist watchlist)
     , expect = Http.expectWhatever Types.PutWatchlistCompleted
