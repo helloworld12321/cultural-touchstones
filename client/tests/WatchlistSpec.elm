@@ -43,17 +43,14 @@ modelFromMessages messages =
           currentModel
     (initialModel, _) = State.init ()
   in
-  initialModel
-    |> applyMessages messages
+  initialModel |> applyMessages messages
 
 {-| Like `modelFromMessages`, but it then takes the model, generates the
 HTML for the watchlist view, and returns that HTML.
 -}
 watchlistViewFromMessages : List Types.Message -> Html.Html Types.Message
 watchlistViewFromMessages =
-  modelFromMessages
-    >> .watchlistModel
-    >> Watchlist.View.view
+  modelFromMessages >> .watchlistModel >> Watchlist.View.view
 
 
 {-| Like `watchlistViewFromMessages`, but it generates the HTML for the whole
@@ -231,9 +228,7 @@ suite =
         [ Test.test
             "Contains an element with the \"loading\" class"
             (\() ->
-              let
-                viewHtml = Watchlist.View.view Watchlist.Types.Loading
-              in
+              let viewHtml = Watchlist.View.view Watchlist.Types.Loading in
               Html.div [] [ viewHtml ]
                 |> Query.fromHtml
                 |> Query.findAll [ Selector.class "loading" ]
