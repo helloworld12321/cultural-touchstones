@@ -43,17 +43,14 @@ modelFromMessages messages =
           currentModel
     (initialModel, _) = State.init ()
   in
-  initialModel
-    |> applyMessages messages
+  initialModel |> applyMessages messages
 
 {-| Like `modelFromMessages`, but it then takes the model, generates the
 HTML for the watchlist view, and returns that HTML.
 -}
 watchlistViewFromMessages : List Types.Message -> Html.Html Types.Message
 watchlistViewFromMessages =
-  modelFromMessages
-    >> .watchlistModel
-    >> Watchlist.View.view
+  modelFromMessages >> .watchlistModel >> Watchlist.View.view
 
 
 {-| Like `watchlistViewFromMessages`, but it generates the HTML for the whole
@@ -83,6 +80,20 @@ miyazakiMovies =
 {-| This is a short list of movie names for testing. -}
 twilightMovies : Watchlist.Types.Watchlist
 twilightMovies = [ "Twilight", "New Moon", "Eclipse" ]
+
+{-| The longest possible string that you can add to a watchlist. -}
+maxLengthWatchlistItem : String
+maxLengthWatchlistItem =
+  (String.repeat Watchlist.Types.maxWatchlistItemLength ".")
+
+{-| This is a silly string that's useful for checking that we treat
+astral-plane unicode code points as single characters, rather than as two
+surrogate-pair characters.
+-}
+santas : String
+santas =
+  (String.repeat Watchlist.Types.maxWatchlistItemLength "🎅")
+
 
 {-| Given a movie name and some html, expect that the html has a
 <ul class="watchlist">, and expect that inside that <ul> there's a <li> with
@@ -231,9 +242,7 @@ suite =
         [ Test.test
             "Contains an element with the \"loading\" class"
             (\() ->
-              let
-                viewHtml = Watchlist.View.view Watchlist.Types.Loading
-              in
+              let viewHtml = Watchlist.View.view Watchlist.Types.Loading in
               Html.div [] [ viewHtml ]
                 |> Query.fromHtml
                 |> Query.findAll [ Selector.class "loading" ]
@@ -281,21 +290,20 @@ suite =
             )
         ]
 
-    , Test.describe
+    , let
+        add newMovieName =
+            [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
+            , Types.EditAddWatchlistItemInput newMovieName
+            ]
+      in
+      Test.describe
         "When you type a movie name into the new-watchlist-item text box"
         [ Test.test
             "Displays a validation error if the movie name is too long"
             (\() ->
               let
                 viewHtml =
-                  pageViewFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
-                    , Types.EditAddWatchlistItemInput
-                        (String.repeat
-                          (Watchlist.Types.maxWatchlistItemLength + 1)
-                          "."
-                        )
-                    ]
+                  pageViewFromMessages <| add <| maxLengthWatchlistItem ++ "."
               in
               Html.div [] [ viewHtml ]
                 |> Query.fromHtml
@@ -307,14 +315,7 @@ suite =
             (\() ->
               let
                 viewHtml =
-                  pageViewFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
-                    , Types.EditAddWatchlistItemInput
-                        (String.repeat
-                          Watchlist.Types.maxWatchlistItemLength
-                          "."
-                        )
-                    ]
+                  pageViewFromMessages <| add maxLengthWatchlistItem
               in
               Html.div [] [ viewHtml ]
                 |> Query.fromHtml
@@ -326,15 +327,7 @@ suite =
             (\() ->
               let
                 viewHtml =
-                  pageViewFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
-                    , Types.EditAddWatchlistItemInput
-                        (String.repeat
-                          Watchlist.Types.maxWatchlistItemLength
-                          -- Santa is an astral-plane character.
-                          "🎅"
-                        )
-                    ]
+                  pageViewFromMessages <| add santas
               in
               Html.div [] [ viewHtml ]
                 |> Query.fromHtml
@@ -343,17 +336,21 @@ suite =
             )
         ]
 
-    , Test.describe
+
+    , let
+        add newMovieName =
+            [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
+            , Types.EditAddWatchlistItemInput newMovieName
+            ]
+      in
+      Test.describe
         "When you submit a new movie name"
         [ Test.test
             "If the movie name is the empty string, ignores you."
             (\() ->
               let
                 model =
-                  modelFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
-                    , Types.EditAddWatchlistItemInput ""
-                    ]
+                  modelFromMessages <| add ""
                 (_, cmd) =
                   model |> State.update Types.ClickAddWatchlistItem
               in
@@ -364,14 +361,7 @@ suite =
             (\() ->
               let
                 model =
-                  modelFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
-                    , Types.EditAddWatchlistItemInput
-                        (String.repeat
-                          (Watchlist.Types.maxWatchlistItemLength + 1)
-                          "."
-                        )
-                    ]
+                  modelFromMessages <| add (maxLengthWatchlistItem ++ ".")
                 (_, cmd) =
                   model |> State.update Types.ClickAddWatchlistItem
               in
@@ -379,20 +369,14 @@ suite =
             )
         , let
             exampleMovieNames =
-              [ "How Do You Live"
-              , String.repeat Watchlist.Types.maxWatchlistItemLength "."
-              , String.repeat Watchlist.Types.maxWatchlistItemLength "🎅"
-              ]
+              [ "How Do You Live", maxLengthWatchlistItem, santas ]
           in
           exampleMovieNames |> MoreTest.parameterized
             "if the movie name is valid, makes a PUT request that prepends the movie name to the watchlist"
             (\movieName ->
               let
                 model =
-                  modelFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
-                    , Types.EditAddWatchlistItemInput movieName
-                    ]
+                  modelFromMessages <| add movieName
                 (_, cmd) =
                   model |> State.update Types.ClickAddWatchlistItem
               in

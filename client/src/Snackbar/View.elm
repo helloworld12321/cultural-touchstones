@@ -45,11 +45,11 @@ dismissButton =
     message = Types.SnackbarNextTransitionState (Just Snackbar.Types.Waning)
   in
   Html.a
-  [ Attributes.class "dismiss"
-  , Attributes.href "#"
-  , MoreAttributes.role "button"
-  , MoreAttributes.tabIndex "0"
-  , MoreAttributes.ariaLabel "Dismiss"
-  , Events.onClick message
-  ]
-  [ Html.text "×" ]
+    [ Attributes.class "dismiss"
+    , Attributes.href "#"
+    , MoreAttributes.role "button"
+    , MoreAttributes.tabIndex "0"
+    , MoreAttributes.ariaLabel "Dismiss"
+    , Events.onClick message
+    ]
+    [ Html.text "×" ]

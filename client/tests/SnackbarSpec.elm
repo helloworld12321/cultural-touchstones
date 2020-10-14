@@ -26,12 +26,8 @@ modelWithSnackbar snackbarText =
   let
     (model, _) = State.init ()
   in
-  { model
-  | snackbarModel =
-    Just
-      { transitionState = Snackbar.Types.Hidden
-      , text = snackbarText
-      }
+  { model | snackbarModel =
+      Just { transitionState = Snackbar.Types.Hidden, text = snackbarText }
   }
 
 {-| This function takes an application with a snackbar in the Hidden state,
@@ -41,9 +37,9 @@ response.
 viewFromMessage : String -> Types.Message -> Maybe (Html.Html Types.Message)
 viewFromMessage snackbarText =
   flip State.update (modelWithSnackbar snackbarText)
-  >> Tuple.first
-  >> .snackbarModel
-  >> Snackbar.View.view
+    >> Tuple.first
+    >> .snackbarModel
+    >> Snackbar.View.view
 
 transitionStateFuzzer : Fuzz.Fuzzer Snackbar.Types.TransitionState
 transitionStateFuzzer =
@@ -97,10 +93,8 @@ suite =
             |> MoreTest.parameterized
               "marks the snackbar as visible during the appropriate transition states"
               (let
-                expectedClasses =
-                  [ Selector.class "snackbar" ]
-                notExpectedClasses =
-                  [ Selector.class "hidden" ]
+                expectedClasses = [ Selector.class "snackbar" ]
+                notExpectedClasses = [ Selector.class "hidden" ]
               in
               (Just
                 >> Types.SnackbarNextTransitionState

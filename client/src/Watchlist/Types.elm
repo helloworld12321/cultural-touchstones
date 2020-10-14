@@ -64,7 +64,6 @@ validateNewItem newItemText =
         "Movie names be at most "
           ++ String.fromInt maxWatchlistItemLength
           ++ " characters long."
-
     in
     Err <| Invalid reason
   else

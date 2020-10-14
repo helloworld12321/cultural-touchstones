@@ -16,8 +16,7 @@ import Hex
 wait : Float -> message -> Cmd message
 wait millis message =
   -- Adapted from https://stackoverflow.com/a/44354637
-  Process.sleep millis
-  |> Task.perform (\() -> message)
+  Process.sleep millis |> Task.perform (\() -> message)
 
 {-| Given a list, omit elements at certain positions. -}
 dropIndices : List Int -> List a -> List a

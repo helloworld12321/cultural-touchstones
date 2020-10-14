@@ -51,17 +51,16 @@ setTheWatchlist items oldModel =
         Watchlist.Types.Present oldWatchlist -> Just oldWatchlist
         _ -> Nothing
   in
-  ( { oldModel
-    | watchlistModel =
-      Watchlist.Types.Present
-        (maybeOldWatchlist
-          |> Maybe.map (\oldWatchlist -> { oldWatchlist | list = items })
-          |> Maybe.withDefault
-            { list = items
-            , newItemText = ""
-            , newItemState = Err Watchlist.Types.Empty
-            }
-        )
+  ( { oldModel | watchlistModel =
+        Watchlist.Types.Present
+          (maybeOldWatchlist
+            |> Maybe.map (\oldWatchlist -> { oldWatchlist | list = items })
+            |> Maybe.withDefault
+              { list = items
+              , newItemText = ""
+              , newItemState = Err Watchlist.Types.Empty
+              }
+          )
     }
   , Types.NoCmd
   )
@@ -100,8 +99,7 @@ respondToPutWatchlistError
   : Types.Model
   -> (Types.Model, Types.PseudoCmd Types.Message)
 respondToPutWatchlistError oldModel =
-  ( { oldModel
-    | snackbarModel =
+  ( { oldModel | snackbarModel =
         Just
           { transitionState = Snackbar.Types.Hidden
           , text = Watchlist.Types.putErrorText
@@ -118,8 +116,7 @@ updateNewItemInput
 updateNewItemInput newItemText oldModel =
   case oldModel.watchlistModel of
     Watchlist.Types.Present { list } ->
-      ( { oldModel
-        | watchlistModel =
+      ( { oldModel | watchlistModel =
             Watchlist.Types.Present
               { list = list
               , newItemText = newItemText
@@ -144,12 +141,8 @@ maybeAddWatchlistItem oldModel =
   case oldModel.watchlistModel of
     Watchlist.Types.Present { list, newItemText, newItemState } ->
       case newItemState of
-        Ok () ->
-          ( oldModel
-          , Watchlist.Ajax.putWatchlist <| newItemText :: list
-          )
-        _ ->
-          (oldModel, Types.NoCmd)
+        Ok () -> (oldModel, Watchlist.Ajax.putWatchlist <| newItemText :: list)
+        _ -> (oldModel, Types.NoCmd)
     _ ->
       -- If there isn't currently a watchlist, just ignore this message.
       (oldModel, Types.NoCmd)
@@ -190,61 +183,39 @@ transitionTheSnackbar nextTransitionState oldModel =
     |> Maybe.map (\snackbar ->
       case nextTransitionState of
         Just Snackbar.Types.Hidden ->
-          ( { oldModel
-            | snackbarModel =
-                Just
-                  { snackbar
-                  | transitionState = Snackbar.Types.Hidden
-                  }
+          ( { oldModel | snackbarModel =
+                Just { snackbar | transitionState = Snackbar.Types.Hidden }
             }
           , delaySnackbarState Snackbar.Types.Waxing
           )
         Just Snackbar.Types.Waxing ->
-          ( { oldModel
-            | snackbarModel =
-                Just
-                  { snackbar
-                  | transitionState = Snackbar.Types.Waxing
-                  }
+          ( { oldModel | snackbarModel =
+                Just { snackbar | transitionState = Snackbar.Types.Waxing }
             }
           -- We'll just wait for the HTML to emit a transitionend event.
           , Types.NoCmd
           )
         Just Snackbar.Types.Displayed ->
-          ( { oldModel
-            | snackbarModel =
-                Just
-                  { snackbar
-                  | transitionState = Snackbar.Types.Displayed
-                  }
+          ( { oldModel | snackbarModel =
+                Just { snackbar | transitionState = Snackbar.Types.Displayed }
             }
           -- Wait for the user to click the dismiss button.
           , Types.NoCmd
           )
         Just Snackbar.Types.Waning ->
-          ( { oldModel
-            | snackbarModel =
-                Just
-                  { snackbar
-                  | transitionState = Snackbar.Types.Waning
-                  }
+          ( { oldModel | snackbarModel =
+                Just { snackbar | transitionState = Snackbar.Types.Waning }
             }
           -- Again, we'll wait for a transitionend event before moving on.
           , Types.NoCmd
           )
         Nothing ->
-          ( { oldModel
-            | snackbarModel = Nothing
-            }
-          , Types.NoCmd
-          )
+          ({ oldModel | snackbarModel = Nothing }, Types.NoCmd)
     )
-    |> Maybe.withDefault
-      -- There should always be an existing snackbar when we receive this
-      -- message, but if there isn't, we can just ignore the message, I guess.
-      ( oldModel
-      , Types.NoCmd
-      )
+    -- There should always be an existing snackbar when we receive this
+    -- message, but if there isn't, we can just ignore the message, I guess.
+    |> Maybe.withDefault (oldModel, Types.NoCmd)
+
 
 {-| Emit a SnackbarNextTransitionState message in just a few milliseconds. -}
 delaySnackbarState

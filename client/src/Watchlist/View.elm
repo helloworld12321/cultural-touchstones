@@ -23,9 +23,7 @@ view model =
     Watchlist.Types.Loading ->
       Html.p [ Attributes.class "loading" ] [ Html.text "Loading…" ]
     Watchlist.Types.Error ->
-      let
-        errorText = "Something went wrong."
-      in
+      let errorText = "Something went wrong." in
       Html.p [ Attributes.class "error" ] [ Html.text errorText ]
 
 {-| This little piece of HTML lets you add new watchlist items.
@@ -55,6 +53,7 @@ newItemView newItemText newItemState =
               baseAttributes
       in
       Html.input attributes []
+
     addItemButton =
       Html.a
         [ Attributes.class "add-button"
@@ -65,6 +64,7 @@ newItemView newItemText newItemState =
         , Events.onClick Types.ClickAddWatchlistItem
         ]
         [ Html.text "+" ]
+
     maybeValidationMessage =
       case newItemState of
         Err (Watchlist.Types.Invalid reason) ->
