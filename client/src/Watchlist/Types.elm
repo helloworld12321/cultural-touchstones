@@ -45,11 +45,13 @@ type alias Watchlist = List String
 
 {-| This text should be displayed when getting the watchlist failed. -}
 getErrorText : String
-getErrorText = "Error: Couldn't get your watchlist from the server"
+getErrorText =
+  "Error: Couldn't get your watchlist from the server"
 
 {-| This text should be displayed when putting the watchlist failed. -}
 putErrorText : String
-putErrorText = "Error: Couldn't write your watchlist to the server"
+putErrorText =
+  "Error: Couldn't write your watchlist to the server"
 
 {-| Make sure that the contents of the new item text box are okay to send to
 the server.
@@ -73,4 +75,5 @@ validateNewItem newItemText =
 points.
 -}
 maxWatchlistItemLength : Int
-maxWatchlistItemLength = 300
+maxWatchlistItemLength =
+  300
