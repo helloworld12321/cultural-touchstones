@@ -79,7 +79,8 @@ miyazakiMovies =
 
 {-| This is a short list of movie names for testing. -}
 twilightMovies : Watchlist.Types.Watchlist
-twilightMovies = [ "Twilight", "New Moon", "Eclipse" ]
+twilightMovies =
+  [ "Twilight", "New Moon", "Eclipse" ]
 
 {-| The longest possible string that you can add to a watchlist. -}
 maxLengthWatchlistItem : String
