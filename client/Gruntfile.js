@@ -44,6 +44,14 @@ module.exports = function(grunt) {
     },
   };
 
+  config.watch = {
+    files: ['src/**/*', 'styles/**/*', 'index.html'],
+    tasks: ['build:development'],
+    options: {
+      atBegin: true,
+    },
+  };
+
   // TODO: add minification for production.
 
   grunt.initConfig(config);
@@ -74,5 +82,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-sass');
+  grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-elm');
 }

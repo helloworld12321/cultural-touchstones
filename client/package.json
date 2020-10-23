@@ -4,6 +4,7 @@
   "description": "A web app to keep track of movies you've been meaning to watch.",
   "main": "dist/elm.js",
   "scripts": {
+    "watch": "npx grunt watch",
     "build": "npx grunt build:development",
     "build:prod": "npx grunt build:production",
     "lint": "npx elm-analyse",
@@ -32,6 +33,7 @@
     "grunt-contrib-clean": "^2.0.0",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-sass": "^2.0.0",
+    "grunt-contrib-watch": "^1.1.0",
     "grunt-elm": "^2.0.0",
     "npm-force-resolutions": "0.0.3",
     "sass": "^1.26.10"
