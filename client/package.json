@@ -4,12 +4,11 @@
   "description": "A web app to keep track of movies you've been meaning to watch.",
   "main": "dist/elm.js",
   "scripts": {
-    "watch": "npx grunt watch",
-    "build": "npx grunt build:development",
-    "build:prod": "npx grunt build:production",
+    "watch": "npx gulp watchDevelopment",
+    "build": "npx gulp buildDevelopment",
+    "build:prod": "npx gulp buildProduction",
     "lint": "npx elm-analyse",
-    "test": "npx elm-test",
-    "preinstall": "npx npm-force-resolutions"
+    "test": "npx elm-test"
   },
   "repository": {
     "type": "git",
@@ -27,21 +26,16 @@
   },
   "homepage": "https://github.com/helloworld12321/cultural-touchstones#readme",
   "devDependencies": {
+    "delete": "^1.1.0",
     "elm-analyse": "^0.16.5",
     "elm-test": "^0.19.1-revision2",
-    "grunt": "^1.3.0",
-    "grunt-contrib-clean": "^2.0.0",
-    "grunt-contrib-copy": "^1.0.0",
-    "grunt-contrib-sass": "^2.0.0",
-    "grunt-contrib-watch": "^1.1.0",
-    "grunt-elm": "^2.0.0",
-    "npm-force-resolutions": "0.0.3",
+    "gulp": "^4.0.2",
+    "gulp-elm": "^0.8.2",
+    "gulp-rename": "^2.0.0",
+    "gulp-sass": "^4.1.0",
     "sass": "^1.26.10"
   },
   "dependencies": {
     "sakura.css": "^1.3.1"
-  },
-  "resolutions": {
-    "node-elm-compiler": "5.0.5"
   }
 }
