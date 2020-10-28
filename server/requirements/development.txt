@@ -1,0 +1,4 @@
+-r production.txt
+-r testing.txt
+-r linting.txt
+python-dotenv==0.14.0
