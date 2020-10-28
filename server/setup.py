@@ -78,7 +78,6 @@ setuptools.setup(
         "A web app to keep track of movies you've been meaning to watch.",
     url='https://github.com/helloworld12321/cultural-touchstones',
     packages=setuptools.find_packages(),
-    zip_safe=False,
     cmdclass={
         'pylint': PylintCommand,
         'gunicorn': GunicornCommand,
