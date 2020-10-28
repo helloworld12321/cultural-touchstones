@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 """
-This file manages installing, running, testing, and linting the project.
+This file manages running, testing, and linting the project.
 
 Incidentally, we're not actually using setuptools to *package* anything--
 Cultural Touchstones is distributed through git. setuptools' role in this
-project is just to manage dependencies and run commands. 🙃
+project is just to run commands. 🙃
 """
 
 import setuptools
@@ -83,18 +83,5 @@ setuptools.setup(
         'pylint': PylintCommand,
         'gunicorn': GunicornCommand,
     },
-    install_requires=[
-        'flask',
-        'mariadb',
-        'gunicorn',
-    ],
-    setup_requires=[
-        'pytest-runner',
-        'pylint',
-        'pylint-quotes',
-    ],
-    tests_require=[
-        'pytest',
-    ],
     python_requires='>=3.6',
 )

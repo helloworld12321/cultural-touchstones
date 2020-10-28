@@ -19,6 +19,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     # Make sure we're using a version of pip with `wheel` installed
     - run: pip install --upgrade pip && pip install wheel
+    - name: Install dependencies
+      run: pip install -r requirements/linting.txt
     - name: Run the linter
       run: python setup.py lint
 
@@ -61,6 +63,8 @@ jobs:
       # ¯\_(ツ)_/¯
       run: sudo mariadbd --init-file="${PWD}/../database/testing_startup.sql" &
     - run: pip install --upgrade pip && pip install wheel
+    - name: Install Python dependencies
+      run: pip install -r requirements/testing.txt
     - name: Run the tests
       run: python setup.py test
 
