@@ -42,7 +42,9 @@ def _clear_database(app):
     (The table structure is kept intact.)
     """
     with _database_connection(app) as connection:
+        connection.cursor().execute('START TRANSACTION')
         connection.cursor().execute('TRUNCATE TABLE watchlist_items')
+        connection.cursor().execute('COMMIT')
 
 def _insert_watchlist_items(app, items):
     """
@@ -50,13 +52,11 @@ def _insert_watchlist_items(app, items):
 
     Here, `items` is an iterable of WatchlistItem instances.
     """
-    # MariaDB is picky about the types it's given. It needs a list of real
-    # tuples; named tuples aren't good enough.
-    items = [tuple(item) for item in items]
     with _database_connection(app) as connection:
+        connection.cursor().execute('START TRANSACTION')
         connection.cursor().executemany(
             'INSERT INTO watchlist_items (position, contents) VALUES (?, ?)',
-            items
+            [(item.position, item.contents) for item in items]
         )
         connection.cursor().execute('COMMIT')
 
@@ -96,15 +96,11 @@ def client_with_data(_app):
     list of WatchlistItem instances.
     """
     test_data = [
-        WatchlistItem(position, contents)
-        for position, contents in enumerate([
-            'The Castle of Cagliostro',
-            'Nausicaä of the Valley of the Wind',
-            '',
-            '.' * MAX_WATCHLIST_ITEM_LENGTH,
-            # Test the Santa emoji, since he's an astral-plane character.
-            '🎅' * MAX_WATCHLIST_ITEM_LENGTH,
-        ])
+        WatchlistItem(position=0, contents='Spirited Away'),
+        WatchlistItem(position=1, contents='Amélie'),
+        WatchlistItem(position=2, contents=''),
+        WatchlistItem(position=3, contents='.' * MAX_WATCHLIST_ITEM_LENGTH),
+        WatchlistItem(position=4, contents='🎅' * MAX_WATCHLIST_ITEM_LENGTH),
     ]
     _clear_database(_app)
     _insert_watchlist_items(_app, test_data)
