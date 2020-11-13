@@ -5,7 +5,7 @@ const gulp = require('gulp');
 const cleanCss = require('gulp-clean-css');
 const elm = require('gulp-elm');
 const rename = require('gulp-rename');
-const sass = require('gulp-sass');
+const sass = require('gulp-dart-sass');
 const uglify = require('gulp-uglify');
 
 // Use Dart Sass, since it supports more features than Node Sass.
