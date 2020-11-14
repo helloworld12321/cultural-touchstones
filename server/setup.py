@@ -10,13 +10,12 @@ project is just to run commands. 🙃
 
 import setuptools
 
-import distutils.cmd
 import distutils.log
 import subprocess
 
 # Adapted from
 # https://jichu4n.com/posts/how-to-add-custom-build-steps-and-commands-to-setuppy/
-class PylintCommand(distutils.cmd.Command):
+class PylintCommand(setuptools.Command):
     """
     Run pylint.
     """
@@ -40,28 +39,39 @@ class PylintCommand(distutils.cmd.Command):
             'setup.py',
         ])
 
-class GunicornCommand(distutils.cmd.Command):
+class GunicornCommand(setuptools.Command):
     """
     Run Cultural Touchstones on the Gunicorn server.
     """
 
     description = 'Run Cultural Touchstones on the Gunicorn server.'
-    user_options = []
+    user_options = [
+        (
+            'production',
+            None,
+            'Run in a production environment (for example, as a daemon).',
+        )
+    ]
 
     def initialize_options(self):
-        pass
+        self.production = None
 
     def finalize_options(self):
-        pass
+        self.production = bool(self.production);
 
     def run(self):
         # We could run Gunicorn through its Python API
         # (See https://docs.gunicorn.org/en/latest/custom.html)
         # But to do that, we would have to import the cultural_touchstones
         # package into its own setuptools, which would be pretty messy.
+        if self.production:
+            extra_gunicorn_arguments = ['--daemon']
+        else:
+            extra_gunicorn_arguments = []
         command = [
             'gunicorn',
-            'cultural_touchstones:create_app()'
+            'cultural_touchstones:create_app()',
+            *extra_gunicorn_arguments,
         ]
         self.announce(
             f'Running command: {command}',
