@@ -54,10 +54,12 @@ class GunicornCommand(setuptools.Command):
     ]
 
     def initialize_options(self):
+        # pylint: disable=attribute-defined-outside-init
         self.production = None
 
     def finalize_options(self):
-        self.production = bool(self.production);
+        # pylint: disable=attribute-defined-outside-init
+        self.production = bool(self.production)
 
     def run(self):
         # We could run Gunicorn through its Python API
