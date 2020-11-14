@@ -4,10 +4,9 @@
   "description": "A web app to keep track of movies you've been meaning to watch.",
   "main": "dist/elm.js",
   "scripts": {
-    "build": "mkdir -p dist && npm run build:html && npm run build:sass && npm run build:elm",
-    "build:html": "cp index.html dist/",
-    "build:sass": "sass styles:dist/styles -I node_modules/",
-    "build:elm": "elm make src/Main.elm --output=dist/elm.js",
+    "watch": "npx gulp watchDevelopment",
+    "build": "npx gulp buildDevelopment",
+    "build:prod": "npx gulp buildProduction",
     "lint": "npx elm-analyse",
     "test": "npx elm-test"
   },
@@ -27,8 +26,15 @@
   },
   "homepage": "https://github.com/helloworld12321/cultural-touchstones#readme",
   "devDependencies": {
+    "delete": "^1.1.0",
     "elm-analyse": "^0.16.5",
     "elm-test": "^0.19.1-revision2",
+    "gulp": "^4.0.2",
+    "gulp-clean-css": "^4.3.0",
+    "gulp-dart-sass": "^1.0.2",
+    "gulp-elm": "^0.8.2",
+    "gulp-rename": "^2.0.0",
+    "gulp-uglify": "^3.0.2",
     "sass": "^1.26.10"
   },
   "dependencies": {
