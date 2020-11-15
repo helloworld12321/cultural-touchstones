@@ -10,17 +10,24 @@ project is just to run commands. 🙃
 
 import setuptools
 
+import distutils.errors
 import distutils.log
 import subprocess
+
+class PytestFailedError(distutils.errors.DistutilsError):
+    def __init__(self, pytest_exit_code):
+        self.exit_code = pytest_exit_code
+        super().__init__(
+            'Pytest failed with exit code {} ({})'.format(
+                pytest_exit_code,
+                pytest_exit_code.name,
+            ),
+        )
 
 # Adapted from
 # https://jichu4n.com/posts/how-to-add-custom-build-steps-and-commands-to-setuppy/
 class PylintCommand(setuptools.Command):
-    """
-    Run pylint.
-    """
-
-    description = 'run pylint'
+    description = 'Run pylint.'
     user_options = []
 
     def initialize_options(self):
@@ -39,11 +46,23 @@ class PylintCommand(setuptools.Command):
             'setup.py',
         ])
 
-class GunicornCommand(setuptools.Command):
-    """
-    Run Cultural Touchstones on the Gunicorn server.
-    """
+class PytestCommand(setuptools.Command):
+    description = 'Run pytest.'
+    user_options = []
 
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        import pytest
+        exit_code = pytest.main()
+        if exit_code != pytest.ExitCode.OK:
+            raise PytestFailedError(exit_code)
+
+class GunicornCommand(setuptools.Command):
     description = 'Run Cultural Touchstones on the Gunicorn server.'
     user_options = [
         (
@@ -91,8 +110,9 @@ setuptools.setup(
     url='https://github.com/helloworld12321/cultural-touchstones',
     packages=setuptools.find_packages(),
     cmdclass={
-        'pylint': PylintCommand,
         'gunicorn': GunicornCommand,
+        'pylint': PylintCommand,
+        'pytest': PytestCommand,
     },
     python_requires='>=3.6',
 )
