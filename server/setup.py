@@ -39,8 +39,7 @@ class PylintCommand(setuptools.Command):
     def run(self):
         import pylint.lint
         pylint.lint.Run([
-            '--load-plugins',
-            'pylint_quotes',
+            '--load-plugins=pylint_quotes',
             'cultural-touchstones',
             'test/**',
             'setup.py',
