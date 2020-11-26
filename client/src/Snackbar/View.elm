@@ -44,11 +44,8 @@ dismissButton =
   let
     message = Types.SnackbarNextTransitionState (Just Snackbar.Types.Waning)
   in
-  Html.a
+  Html.button
     [ Attributes.class "dismiss"
-    , Attributes.href "#"
-    , MoreAttributes.role "button"
-    , MoreAttributes.tabIndex "0"
     , MoreAttributes.ariaLabel "Dismiss"
     , Events.onClick message
     ]
