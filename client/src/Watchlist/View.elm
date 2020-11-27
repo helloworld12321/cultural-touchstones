@@ -55,11 +55,8 @@ newItemView newItemText newItemState =
       Html.input attributes []
 
     addItemButton =
-      Html.a
+      Html.button
         [ Attributes.class "add-button"
-        , Attributes.href "#"
-        , MoreAttributes.role "button"
-        , MoreAttributes.tabIndex "0"
         , MoreAttributes.ariaLabel "Add watchlist item"
         , Events.onClick Types.ClickAddWatchlistItem
         ]
@@ -92,11 +89,8 @@ viewOfWatchlist : Watchlist.Types.Watchlist -> Html.Html Types.Message
 viewOfWatchlist items =
   let
     deleteItemButton index =
-      Html.a
+      Html.button
         [ Attributes.class "delete-button"
-        , Attributes.href "#"
-        , MoreAttributes.role "button"
-        , MoreAttributes.tabIndex "0"
         , MoreAttributes.ariaLabel "Delete watchlist item"
         , Events.onClick <| Types.ClickDeleteWatchlistItem index
         ]

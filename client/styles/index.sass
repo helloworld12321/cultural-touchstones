@@ -1,5 +1,5 @@
-@use 'theme'
-@use 'snackbar'
+@use "theme"
+@use "snackbar"
 
 html, body
   height: 100%
@@ -32,9 +32,7 @@ body
 .add-watchlist-item .add-button
   grid-area: add-button
   @include theme.icon-button
-  // Icon buttons have a lot of space on the top and bottom, so use negative
-  // margins to make them shorter.
-  margin: -0.2em auto -0.2em 0.4em
+  margin: 0 auto 0 0.1em
 
 .add-watchlist-item .validation-error
   grid-area: validation
