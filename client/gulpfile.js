@@ -9,8 +9,13 @@ const rename = require('gulp-rename');
 const sass = require('gulp-dart-sass');
 const uglify = require('gulp-uglify');
 
-// Use Dart Sass, since it supports more features than Node Sass.
-sass.compiler = require('sass');
+/**
+ * Given a file path, return a fingerprinted version
+ * of that file path.
+ */
+function fingerprint(filePath) {
+  // TODO
+}
 
 const dev = {
   /**
@@ -46,19 +51,21 @@ const dev = {
       .pipe(gulp.dest('dist/'));
   },
 
-  /**
-   * Fingerprint the built CSS and JavaScript files, so that the browser knows
-   * when it can use a cached version and when it has to request a new verison
-   * from the server.
-   *
-   * (This task generates the hashes of our build output, and stores them in
-   * `buster.json`. It doesn't actually do anything with those hashes.)
-   */
-  takeFingerprints() {
+  getFingerprints() {
     return gulp.src(['dist/*.js', 'dist/styles/*.css'])
       .pipe(bust({algo: 'sha256'}))
       .pipe(gulp.dest('.'))
-  }
+  },
+
+  addFingerprintsToFileNames() {
+    // TODO
+    return Promise.resolve();
+  },
+
+  addFingerprintsToLinks() {
+    // TODO
+    return Promise.resolve();
+  },
 }
 
 const prod = {
@@ -97,32 +104,80 @@ const prod = {
   },
 };
 
-function build(environment) {
+/**
+ * Fingerprint the built CSS and JavaScript files, so that the browser knows
+ * when it can use a cached version and when it has to request a new verison
+ * from the server.
+ *
+ * Specifically, given a set of files to fingerprint, this task
+ *
+ * 1) For each file, calculate that file's hash.
+ * 2) For each file, append that file's hash to its file name.
+ * 3) For each file, change any links to that file in index.html.
+ *
+ * This function returns a task function.
+ *
+ * @param env An object, either `dev` or `prod`, which describes how to perform
+ *   tasks.
+ */
+function fingerprintFiles(env) {
+  // Make sure to bind methods to their enclosing object before we pass them
+  // to gulp.series(). Otherwise, the methods won't keep a reference to their
+  // enclosing object. (They won't have a value for `this`.)
+  const getFingerprints = env.getFingerprints.bind(env);
+  const addFingerprintsToFileNames = env.addFingerprintsToFileNames.bind(env);
+  const addFingerprintsToLinks = env.addFingerprintsToLinks.bind(env);
+
   return gulp.series(
-    // These functions are named so that Gulp can print nicer logs.
-    function clean() { return environment.clean() },
-    gulp.parallel(
-      function buildHtml() { return environment.buildHtml() },
-      function buildSass() { return environment.buildSass() },
-      function buildElm() { return environment.buildElm() },
-    ),
-    function takeFingerprints() { return environment.takeFingerprints() },
+    getFingerprints,
+    gulp.parallel(addFingerprintsToFileNames, addFingerprintsToLinks),
   );
 }
 
-function watchedBuild(environment) {
+
+/**
+ * Build all of the files in the project.
+ *
+ * This function returns a task function.
+ *
+ * @param env An object, either `dev` or `prod`, which describes how to perform
+ *   tasks.
+ */
+function build(env) {
+  const clean = env.clean.bind(env);
+  const buildHtml = env.buildHtml.bind(env);
+  const buildSass = env.buildSass.bind(env);
+  const buildElm = env.buildElm.bind(env);
+
+  return gulp.series(
+    clean,
+    gulp.parallel(buildHtml, buildSass, buildElm),
+    fingerprintFiles(env),
+  );
+}
+
+/**
+ * Listen to the filesystem, and every time one of the source files changes,
+ * re-build all of the files in the project.
+ *
+ * This function returns a task function.
+ *
+ * @param env An object, either `dev` or `prod`, which describes how to perform
+ *   tasks.
+ */
+function watchedBuild(env) {
   // Curry, so that watchedBuild(dev) returns a task function, and then running
   // to run that task function you have to call watchedBuild(dev)().
   return function() {
     gulp.watch(
       ["index.html", "styles/**/*", "src/**/*"],
       {ignoreInitial: false},
-      build(environment),
+      build(env),
     );
   };
 }
 
-exports.clean = dev.clean;
+exports.clean = dev.clean.bind(dev);
 exports.buildDevelopment = build(dev);
 exports.buildProduction = build(prod);
 exports.watchDevelopment = watchedBuild(dev);
