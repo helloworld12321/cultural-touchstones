@@ -2,6 +2,7 @@
 
 const del = require('delete');
 const gulp = require('gulp');
+const bust = require('gulp-buster');
 const cleanCss = require('gulp-clean-css');
 const elm = require('gulp-elm');
 const rename = require('gulp-rename');
@@ -12,26 +13,52 @@ const uglify = require('gulp-uglify');
 sass.compiler = require('sass');
 
 const dev = {
+  /**
+   * Delete all the built output.
+   */
   clean() {
     return del.promise(['dist/*']);
   },
 
+  /**
+   * Build any static HTML files, and put the output in the right place.
+   */
   buildHtml() {
     return gulp.src('index.html').pipe(gulp.dest('dist/'));
   },
 
+  /**
+   * Compile the Sass to CSS, and put the output in the right place.
+   */
   buildSass() {
     return gulp.src(['styles/*.sass', 'styles/*.scss'])
       .pipe(sass({includePaths: 'node_modules/'}).on('error', sass.logError))
       .pipe(gulp.dest('dist/styles/'));
   },
 
+  /**
+   * Compile the Elm to JavaScript, and put the output in the right place.
+   */
   buildElm() {
     return gulp.src('src/Main.elm')
       .pipe(elm())
       .pipe(rename('elm.js'))
       .pipe(gulp.dest('dist/'));
   },
+
+  /**
+   * Fingerprint the built CSS and JavaScript files, so that the browser knows
+   * when it can use a cached version and when it has to request a new verison
+   * from the server.
+   *
+   * (This task generates the hashes of our build output, and stores them in
+   * `buster.json`. It doesn't actually do anything with those hashes.)
+   */
+  takeFingerprints() {
+    return gulp.src(['dist/*.js', 'dist/styles/*.css'])
+      .pipe(bust({algo: 'sha256'}))
+      .pipe(gulp.dest('.'))
+  }
 }
 
 const prod = {
@@ -79,6 +106,7 @@ function build(environment) {
       function buildSass() { return environment.buildSass() },
       function buildElm() { return environment.buildElm() },
     ),
+    function takeFingerprints() { return environment.takeFingerprints() },
   );
 }
 
