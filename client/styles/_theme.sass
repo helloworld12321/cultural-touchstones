@@ -45,8 +45,9 @@ input[type]
   border-radius: 0.2em
   font-size: 24pt
   font-weight: bold
-  // Let's define the behavior of the button.
-  &
+  &, &:hover:enabled, &:active:enabled
+    // We need to explicitly specify the hover and active behavior to override
+    // Sakura's defaults.
     border: 0.1em solid transparent
     color: $color-fade
     background-color: transparent
@@ -55,9 +56,3 @@ input[type]
     border: 0.1em solid $color-fg-neutral
     color: $color-fade
     background-color: transparent
-  &:hover:enabled, &:active:enabled
-    // Invert colors on hover and click.
-    border: 0.1em solid transparent
-    color: $color-bg
-    background-color: $color-fade
-
