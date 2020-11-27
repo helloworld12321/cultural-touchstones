@@ -11,11 +11,11 @@ const uglify = require('gulp-uglify');
 // Use Dart Sass, since it supports more features than Node Sass.
 sass.compiler = require('sass');
 
-function clean() {
-  return del.promise(['dist/*']);
-}
-
 const dev = {
+  clean() {
+    return del.promise(['dist/*']);
+  },
+
   buildHtml() {
     return gulp.src('index.html').pipe(gulp.dest('dist/'));
   },
@@ -72,9 +72,9 @@ const prod = {
 
 function build(environment) {
   return gulp.series(
-    clean,
+    // These functions are named so that Gulp can print nicer logs.
+    function clean() { return environment.clean() },
     gulp.parallel(
-      // These functions are named so that Gulp can print nicer logs.
       function buildHtml() { return environment.buildHtml() },
       function buildSass() { return environment.buildSass() },
       function buildElm() { return environment.buildElm() },
@@ -94,7 +94,7 @@ function watchedBuild(environment) {
   };
 }
 
-exports.clean = clean;
+exports.clean = dev.clean;
 exports.buildDevelopment = build(dev);
 exports.buildProduction = build(prod);
 exports.watchDevelopment = watchedBuild(dev);
