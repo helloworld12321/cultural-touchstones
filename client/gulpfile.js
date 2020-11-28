@@ -18,7 +18,7 @@ path = path.posix;
 del = del.promise;
 
 const dev = {
-  fingerprintsJsonFile: 'busters.json',
+  fingerprintsJsonFile: 'fingerprints.json',
 
   /**
    * Delete all the built output.

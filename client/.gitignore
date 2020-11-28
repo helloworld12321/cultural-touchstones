@@ -17,4 +17,4 @@ node_modules/
 
 # Build output
 dist/
-busters.json
+fingerprints.json
