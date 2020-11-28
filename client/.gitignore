@@ -16,4 +16,6 @@ repl-temp-*
 node_modules/
 
 # Build output
+build/
 dist/
+fingerprints.json
