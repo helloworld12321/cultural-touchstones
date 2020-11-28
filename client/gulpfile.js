@@ -1,28 +1,42 @@
 'use strict';
 
-const del = require('delete');
+let fs = require('fs');
+let path = require('path');
+const util = require('util');
+
+let del = require('delete');
 const gulp = require('gulp');
 const bust = require('gulp-buster');
 const cleanCss = require('gulp-clean-css');
+const sass = require('gulp-dart-sass');
 const elm = require('gulp-elm');
 const rename = require('gulp-rename');
-const sass = require('gulp-dart-sass');
 const uglify = require('gulp-uglify');
+
+fs = fs.promises;
+path = path.posix;
+del = del.promise;
 
 /**
  * Given a file path, return a fingerprinted version
  * of that file path.
+ *
+ * (By the way, be careful if you use this function on a file with multiple
+ * extensions; only the last one will be preserved.)
  */
-function fingerprint(filePath) {
-  // TODO
+function fingerprinted(filePath, fingerprint) {
+  const {dir, name, ext} = path.parse(filePath);
+  return path.join(dir, `${name}-${fingerprint}${ext}`);
 }
 
 const dev = {
+  fingerprintsJsonFile: 'busters.json',
+
   /**
    * Delete all the built output.
    */
-  clean() {
-    return del.promise(['dist/*']);
+  async clean() {
+    await del(['dist/*']);
   },
 
   /**
@@ -54,17 +68,22 @@ const dev = {
   getFingerprints() {
     return gulp.src(['dist/*.js', 'dist/styles/*.css'])
       .pipe(bust({algo: 'sha256'}))
-      .pipe(gulp.dest('.'))
+      .pipe(gulp.dest('.'));
   },
 
-  addFingerprintsToFileNames() {
-    // TODO
-    return Promise.resolve();
+  async addFingerprintsToFileNames() {
+    const fingerprintsJson =
+      JSON.parse(await fs.readFile(this.fingerprintsJsonFile));
+
+    await Promise.all(
+      Object.entries(fingerprintsJson).map(([path, fingerprint]) =>
+        fs.rename(path, fingerprinted(path, fingerprint))
+      ),
+    );
   },
 
-  addFingerprintsToLinks() {
+  async addFingerprintsToLinks() {
     // TODO
-    return Promise.resolve();
   },
 }
 
