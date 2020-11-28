@@ -24,7 +24,7 @@ const dev = {
    * Delete all the built output.
    */
   async clean() {
-    await del(['dist/*']);
+    await del(['dist/*', 'build/*', this.fingerprintsJsonFile]);
   },
 
   /**
@@ -40,7 +40,7 @@ const dev = {
   buildSass() {
     return gulp.src(['styles/*.sass', 'styles/*.scss'])
       .pipe(sass({includePaths: 'node_modules/'}).on('error', sass.logError))
-      .pipe(gulp.dest('dist/styles/'));
+      .pipe(gulp.dest('build/styles/'));
   },
 
   /**
@@ -50,28 +50,15 @@ const dev = {
     return gulp.src('src/Main.elm')
       .pipe(elm())
       .pipe(rename('elm.js'))
-      .pipe(gulp.dest('dist/'));
+      .pipe(gulp.dest('build/'));
   },
 
-  takeFingerprints() {
-    return gulp.src(['dist/*.js', 'dist/styles/*.css'], {base: 'dist'})
+  addFingerprintsToFileNames() {
+    return gulp.src(['build/*.js', 'build/styles/*.css'], {base: 'build'})
       .pipe(rev())
+      .pipe(gulp.dest('dist/'))
       .pipe(rev.manifest(this.fingerprintsJsonFile))
       .pipe(gulp.dest('.'));
-  },
-
-  async addFingerprintsToFileNames() {
-    const fingerprintsJson =
-      JSON.parse(await fs.readFile(this.fingerprintsJsonFile));
-
-    await Promise.all(
-      Object.entries(fingerprintsJson).map(([pathFromDist, newPathFromDist]) =>
-        fs.rename(
-          path.join('dist/', pathFromDist),
-          path.join('dist/', newPathFromDist),
-        )
-      ),
-    );
   },
 
   async addFingerprintsToLinks() {
@@ -88,7 +75,7 @@ const prod = {
     return gulp.src(['styles/*.sass', 'styles/*.scss'])
       .pipe(sass({includePaths: 'node_modules/'}).on('error', sass.logError))
       .pipe(cleanCss())
-      .pipe(gulp.dest('dist/styles/'));
+      .pipe(gulp.dest('build/styles/'));
   },
 
   buildElm() {
@@ -113,7 +100,7 @@ const prod = {
       }))
       .pipe(uglify({mangle: true}))
       .pipe(rename('elm.js'))
-      .pipe(gulp.dest('dist/'));
+      .pipe(gulp.dest('build/'));
   },
 };
 
@@ -137,14 +124,10 @@ function fingerprintFiles(env) {
   // Make sure to bind methods to their enclosing object before we pass them
   // to gulp.series(). Otherwise, the methods won't keep a reference to their
   // enclosing object. (They won't have a value for `this`.)
-  const takeFingerprints = env.takeFingerprints.bind(env);
   const addFingerprintsToFileNames = env.addFingerprintsToFileNames.bind(env);
   const addFingerprintsToLinks = env.addFingerprintsToLinks.bind(env);
 
-  return gulp.series(
-    takeFingerprints,
-    gulp.parallel(addFingerprintsToFileNames, addFingerprintsToLinks),
-  );
+  return gulp.series(addFingerprintsToFileNames, addFingerprintsToLinks);
 }
 
 
@@ -157,13 +140,11 @@ function fingerprintFiles(env) {
  *   tasks.
  */
 function build(env) {
-  const clean = env.clean.bind(env);
   const buildHtml = env.buildHtml.bind(env);
   const buildSass = env.buildSass.bind(env);
   const buildElm = env.buildElm.bind(env);
 
   return gulp.series(
-    clean,
     gulp.parallel(buildHtml, buildSass, buildElm),
     fingerprintFiles(env),
   );
