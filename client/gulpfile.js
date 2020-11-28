@@ -2,32 +2,20 @@
 
 let fs = require('fs');
 let path = require('path');
-const util = require('util');
 
 let del = require('delete');
 const gulp = require('gulp');
-const bust = require('gulp-buster');
 const cleanCss = require('gulp-clean-css');
 const sass = require('gulp-dart-sass');
 const elm = require('gulp-elm');
+const fingerprint = require('gulp-fingerprint');
 const rename = require('gulp-rename');
+const rev = require('gulp-rev');
 const uglify = require('gulp-uglify');
 
 fs = fs.promises;
 path = path.posix;
 del = del.promise;
-
-/**
- * Given a file path, return a fingerprinted version
- * of that file path.
- *
- * (By the way, be careful if you use this function on a file with multiple
- * extensions; only the last one will be preserved.)
- */
-function fingerprinted(filePath, fingerprint) {
-  const {dir, name, ext} = path.parse(filePath);
-  return path.join(dir, `${name}-${fingerprint}${ext}`);
-}
 
 const dev = {
   fingerprintsJsonFile: 'busters.json',
@@ -65,9 +53,10 @@ const dev = {
       .pipe(gulp.dest('dist/'));
   },
 
-  getFingerprints() {
-    return gulp.src(['dist/*.js', 'dist/styles/*.css'])
-      .pipe(bust({algo: 'sha256'}))
+  takeFingerprints() {
+    return gulp.src(['dist/*.js', 'dist/styles/*.css'], {base: 'dist'})
+      .pipe(rev())
+      .pipe(rev.manifest(this.fingerprintsJsonFile))
       .pipe(gulp.dest('.'));
   },
 
@@ -76,14 +65,19 @@ const dev = {
       JSON.parse(await fs.readFile(this.fingerprintsJsonFile));
 
     await Promise.all(
-      Object.entries(fingerprintsJson).map(([path, fingerprint]) =>
-        fs.rename(path, fingerprinted(path, fingerprint))
+      Object.entries(fingerprintsJson).map(([pathFromDist, newPathFromDist]) =>
+        fs.rename(
+          path.join('dist/', pathFromDist),
+          path.join('dist/', newPathFromDist),
+        )
       ),
     );
   },
 
   async addFingerprintsToLinks() {
-    // TODO
+    return gulp.src(['dist/*.html'])
+      .pipe(fingerprint(this.fingerprintsJsonFile, {verbose: true}))
+      .pipe(gulp.dest('dist/'));
   },
 }
 
@@ -143,12 +137,12 @@ function fingerprintFiles(env) {
   // Make sure to bind methods to their enclosing object before we pass them
   // to gulp.series(). Otherwise, the methods won't keep a reference to their
   // enclosing object. (They won't have a value for `this`.)
-  const getFingerprints = env.getFingerprints.bind(env);
+  const takeFingerprints = env.takeFingerprints.bind(env);
   const addFingerprintsToFileNames = env.addFingerprintsToFileNames.bind(env);
   const addFingerprintsToLinks = env.addFingerprintsToLinks.bind(env);
 
   return gulp.series(
-    getFingerprints,
+    takeFingerprints,
     gulp.parallel(addFingerprintsToFileNames, addFingerprintsToLinks),
   );
 }
