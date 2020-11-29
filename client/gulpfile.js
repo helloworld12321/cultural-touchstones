@@ -61,7 +61,7 @@ const dev = {
       .pipe(gulp.dest('.'));
   },
 
-  async addFingerprintsToLinks() {
+  addFingerprintsToLinks() {
     return gulp.src(['dist/*.html'])
       .pipe(fingerprint(this.fingerprintsJsonFile, {verbose: true}))
       .pipe(gulp.dest('dist/'));
