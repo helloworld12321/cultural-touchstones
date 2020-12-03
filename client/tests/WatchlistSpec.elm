@@ -1,11 +1,6 @@
 module WatchlistSpec exposing (suite)
 
-{-| This module tests the watchlist-related functionality.
-
-Note that we aren't testing the AJAX requests, just the app's state management
-and view generation. (This is mostly for simplicity's sake--AJAX takes place in
-the side-effecty parts of Elm's runtime, so it's hard to test.)
--}
+{-| This module tests the watchlist-related functionality. -}
 
 import Html
 import Http
