@@ -16,13 +16,12 @@ import subprocess
 
 class PytestFailedError(distutils.errors.DistutilsError):
     def __init__(self, pytest_exit_code):
-        self.exit_code = pytest_exit_code
-        super().__init__(
-            'Pytest failed with exit code {} ({})'.format(
-                pytest_exit_code,
-                pytest_exit_code.name,
-            ),
+        message = (
+            f'Pytest failed with exit code {pytest_exit_code} '
+            f'({pytest_exit_code.name})'
         )
+        super().__init__(message)
+        self.exit_code = pytest_exit_code
 
 # Adapted from
 # https://jichu4n.com/posts/how-to-add-custom-build-steps-and-commands-to-setuppy/
