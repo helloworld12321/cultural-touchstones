@@ -20,24 +20,27 @@ update
   : Types.Message
   -> Types.Model
   -> (Types.Model, Types.PseudoCmd Types.Message)
-update message =
+update message model =
   case message of
     Types.GetWatchlistCompleted (Ok items) ->
-      setTheWatchlist items
+      model |> setTheWatchlist items
     Types.GetWatchlistCompleted (Err _) ->
-      respondToGetWatchlistError
+      case model.watchlistModel of
+        Watchlist.Types.Loading -> model |> couldNotLoadTheWatchlist
+        Watchlist.Types.Error -> model |> couldNotLoadTheWatchlist
+        Watchlist.Types.Present _ -> model |> couldNotUpdateTheWatchlist
     Types.PutWatchlistCompleted (Ok ()) ->
-      respondToPutWatchlistSuccess
+      model |> respondToPutWatchlistSuccess
     Types.PutWatchlistCompleted (Err _) ->
-      respondToPutWatchlistError
+      model |> respondToPutWatchlistError
     Types.EditAddWatchlistItemInput newItemText ->
-      updateNewItemInput newItemText
+      model |> updateNewItemInput newItemText
     Types.ClickAddWatchlistItem ->
-      maybeAddWatchlistItem
+      model |> maybeAddWatchlistItem
     Types.ClickDeleteWatchlistItem position ->
-      maybeDeleteWatchlistItem position
+      model |> maybeDeleteWatchlistItem position
     Types.SnackbarNextTransitionState nextState ->
-      transitionTheSnackbar nextState
+      model |> transitionTheSnackbar nextState
 
 {-| Respond to a successful GetWatchlistCompleted event. -}
 setTheWatchlist
@@ -65,11 +68,13 @@ setTheWatchlist items oldModel =
   , Types.NoCmd
   )
 
-{-| Respond to an unsuccessful GetWatchlistCompleted event. -}
-respondToGetWatchlistError
+{-| Respond to the scenario where we're trying to load the watchlist for the
+first time, but our GET request failed.
+-}
+couldNotLoadTheWatchlist
   : Types.Model
   -> (Types.Model, Types.PseudoCmd Types.Message)
-respondToGetWatchlistError oldModel =
+couldNotLoadTheWatchlist oldModel =
   ( { oldModel
     | snackbarModel =
         Just
@@ -78,6 +83,23 @@ respondToGetWatchlistError oldModel =
           }
     , watchlistModel =
         Watchlist.Types.Error
+    }
+  , delaySnackbarState Snackbar.Types.Waxing
+  )
+
+{-| Respond to the scenario where we already have the watchlist, but we
+think it might have changed, so we requested it again, and that request failed.
+-}
+couldNotUpdateTheWatchlist
+  : Types.Model
+  -> (Types.Model, Types.PseudoCmd Types.Message)
+couldNotUpdateTheWatchlist oldModel =
+  ( { oldModel
+    | snackbarModel =
+        Just
+          { transitionState = Snackbar.Types.Hidden
+          , text = Watchlist.Types.getErrorText
+          }
     }
   , delaySnackbarState Snackbar.Types.Waxing
   )
