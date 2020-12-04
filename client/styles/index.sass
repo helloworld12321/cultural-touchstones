@@ -6,6 +6,9 @@ html, body
   box-sizing: border-box
 
 body
+  // By default, Sakura makes the body 38 ems wide. That's a bit too much,
+  // especially given that our content is fairly narrow.
+  max-width: 20em
   // `position: relative` here means that any absolutely-positioned child
   // elements should get their coordinates from body tag.
   position: relative
@@ -18,21 +21,21 @@ body
 
 .add-watchlist-item
   display: grid
-  grid-template-columns: auto 1fr
+  grid-template-columns: 1fr auto
   grid-template-rows: max-content max-content
   grid-template-areas: "input add-button" "validation validation"
   margin-bottom: 0.4em
 
 .add-watchlist-item input
   grid-area: input
-  margin: auto
+  margin: auto 0
   &.invalid
     border-color: theme.$color-warn
 
 .add-watchlist-item .add-button
   grid-area: add-button
   @include theme.icon-button
-  margin: 0 auto 0 0.1em
+  margin: 0 0 0 0.05em
 
 .add-watchlist-item .validation-error
   grid-area: validation
