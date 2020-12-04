@@ -3,7 +3,9 @@
 let fs = require('fs');
 let path = require('path');
 
+const chalk = require('chalk');
 let del = require('delete');
+const log = require('fancy-log');
 const gulp = require('gulp');
 const cleanCss = require('gulp-clean-css');
 const sass = require('gulp-dart-sass');
@@ -40,7 +42,7 @@ const dev = {
   buildSass() {
     return gulp.src(['styles/*.sass', 'styles/*.scss'])
       .pipe(sass({includePaths: 'node_modules/'}).on('error', sass.logError))
-      .pipe(gulp.dest('build/styles/'));
+      .pipe(gulp.dest('dist/styles/'));
   },
 
   /**
@@ -50,26 +52,40 @@ const dev = {
     return gulp.src('src/Main.elm')
       .pipe(elm())
       .pipe(rename('elm.js'))
-      .pipe(gulp.dest('build/'));
-  },
-
-  addFingerprintsToFileNames() {
-    return gulp.src(['build/*.js', 'build/styles/*.css'], {base: 'build'})
-      .pipe(rev())
-      .pipe(gulp.dest('dist/'))
-      .pipe(rev.manifest(this.fingerprintsJsonFile))
-      .pipe(gulp.dest('.'));
-  },
-
-  addFingerprintsToLinks() {
-    return gulp.src(['dist/*.html'])
-      .pipe(fingerprint(this.fingerprintsJsonFile, {verbose: true}))
       .pipe(gulp.dest('dist/'));
+},
+
+  async addFingerprintsToFileNames() {
+    log.info(
+      'In dev mode; '
+        + chalk.yellow('skipping')
+        + ' step \''
+        + chalk.cyan('addFingerprintsToFileNames')
+        + '\'',
+    );
+  },
+
+  async addFingerprintsToLinks() {
+    log.info(
+      'In dev mode; '
+      + chalk.yellow('skipping')
+      + ' step \''
+      + chalk.cyan('addFingerprintsToLinks')
+      + '\'',
+    );
   },
 }
 
 const prod = {
   ...dev,
+
+  /**
+   * Build any static HTML files, and put the output in the right place.
+   */
+  buildHtml() {
+    return gulp.src('index.html').pipe(gulp.dest('build/'));
+  },
+
 
   buildSass() {
     return gulp.src(['styles/*.sass', 'styles/*.scss'])
@@ -101,6 +117,20 @@ const prod = {
       .pipe(uglify({mangle: true}))
       .pipe(rename('elm.js'))
       .pipe(gulp.dest('build/'));
+  },
+
+  addFingerprintsToFileNames() {
+    return gulp.src(['build/*.js', 'build/styles/*.css'], {base: 'build'})
+      .pipe(rev())
+      .pipe(gulp.dest('dist/'))
+      .pipe(rev.manifest(this.fingerprintsJsonFile))
+      .pipe(gulp.dest('.'));
+  },
+
+  addFingerprintsToLinks() {
+    return gulp.src(['build/*.html'])
+      .pipe(fingerprint(this.fingerprintsJsonFile, {verbose: true}))
+      .pipe(gulp.dest('dist/'));
   },
 };
 
