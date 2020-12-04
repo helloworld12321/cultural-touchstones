@@ -3,6 +3,7 @@ module WatchlistSpec exposing (suite)
 {-| This module tests the watchlist-related functionality. -}
 
 import Html
+import Html.Attributes as Attributes
 import Http
 import Json.Decode as Decode
 
@@ -19,42 +20,6 @@ import Watchlist.View
 
 import TestUtils.MoreExpect as MoreExpect
 import TestUtils.MoreTest as MoreTest
-
-{-| This function takes an application in the initial state, gives it a
-series of messages of your discretion, and returns the model updated in
-response to all of those messages.
--}
-modelFromMessages : List Types.Message -> Types.Model
-modelFromMessages messages =
-  let
-    applyMessages remainingMessages currentModel =
-      case remainingMessages of
-        head :: tail ->
-          currentModel
-            |> State.update head
-            |> Tuple.first
-            |> applyMessages tail
-        [] ->
-          currentModel
-    (initialModel, _) = State.init ()
-  in
-  initialModel |> applyMessages messages
-
-{-| Like `modelFromMessages`, but it then takes the model, generates the
-HTML for the watchlist view, and returns that HTML.
--}
-watchlistViewFromMessages : List Types.Message -> Html.Html Types.Message
-watchlistViewFromMessages =
-  modelFromMessages >> .watchlistModel >> Watchlist.View.view
-
-
-{-| Like `watchlistViewFromMessages`, but it generates the HTML for the whole
-page, not just the watchlist views.
--}
-pageViewFromMessages : List Types.Message -> Html.Html Types.Message
-pageViewFromMessages =
-  modelFromMessages >> View.view
-
 
 {-| This is a long list of movie names for testing. -}
 miyazakiMovies : Watchlist.Types.Watchlist
@@ -77,6 +42,48 @@ twilightMovies : Watchlist.Types.Watchlist
 twilightMovies =
   [ "Twilight", "New Moon", "Eclipse" ]
 
+{-| Given an application in a certain state, apply a series of messages to
+that application, and return the model updated in response to all of those
+messages.
+-}
+applyMessages : List Types.Message -> Types.Model -> Types.Model
+applyMessages remainingMessages currentModel =
+  case remainingMessages of
+    head :: tail ->
+      let (nextModel, _) = currentModel |> State.update head in
+      applyMessages tail nextModel
+    [] ->
+      currentModel
+
+{-| Like `applyMessages`, but starting from the initial application state. -}
+modelFromMessages : List Types.Message -> Types.Model
+modelFromMessages messages =
+  let (initialModel, _) = State.init () in
+  initialModel |> applyMessages messages
+
+{-| Like `modelFromMessages`, but it then takes the model, generates the
+HTML for the watchlist view, and returns that HTML.
+-}
+watchlistViewFromMessages : List Types.Message -> Html.Html Types.Message
+watchlistViewFromMessages =
+  modelFromMessages >> .watchlistModel >> Watchlist.View.view
+
+{-| A sequence of messages that populates the watchlist with the Miyazaki
+movies, and then types a new movie name into the watchlist input.
+-}
+addItem : String -> List Types.Message
+addItem newMovieName =
+  [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
+  , Types.EditAddWatchlistItemInput newMovieName
+  ]
+
+{-| Like `watchlistViewFromMessages`, but it generates the HTML for the whole
+page, not just the watchlist views.
+-}
+pageViewFromMessages : List Types.Message -> Html.Html Types.Message
+pageViewFromMessages =
+  modelFromMessages >> View.view
+
 {-| The longest possible string that you can add to a watchlist. -}
 maxLengthWatchlistItem : String
 maxLengthWatchlistItem =
@@ -97,6 +104,9 @@ the movie name in question.
 -}
 expectContainsLiFor : String -> Html.Html msg -> Expect.Expectation
 expectContainsLiFor movieName html =
+  -- elm-explorations/test doesn't have a way to query an element and its
+  -- children, so instead what we're going to do is put the view in a div and
+  -- query the children of that div. This lets us query the entire view.
   Html.div [] [ html ]
     |> Query.fromHtml
     |> Query.find [ Selector.tag "ul" , Selector.class "watchlist" ]
@@ -139,10 +149,6 @@ suite =
                   watchlistViewFromMessages
                     [ Types.GetWatchlistCompleted <| Ok [] ]
               in
-              -- elm-explorations/test doesn't have a way to query an element
-              -- and its children, so instead what we're going to do is put the
-              -- view in a div and query the children of that div. This lets us
-              -- query the entire view.
               Html.div [] [ viewHtml ]
                 |> Query.fromHtml
                 -- At this step, the test will fail unless there's exactly one
@@ -286,20 +292,15 @@ suite =
             )
         ]
 
-    , let
-        add newMovieName =
-            [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
-            , Types.EditAddWatchlistItemInput newMovieName
-            ]
-      in
-      Test.describe
+    , Test.describe
         "When you type a movie name into the new-watchlist-item text box"
         [ Test.test
             "Displays a validation error if the movie name is too long"
             (\() ->
               let
                 viewHtml =
-                  pageViewFromMessages <| add <| maxLengthWatchlistItem ++ "."
+                  pageViewFromMessages
+                    <| addItem (maxLengthWatchlistItem ++ ".")
               in
               Html.div [] [ viewHtml ]
                 |> Query.fromHtml
@@ -311,7 +312,7 @@ suite =
             (\() ->
               let
                 viewHtml =
-                  pageViewFromMessages <| add maxLengthWatchlistItem
+                  pageViewFromMessages <| addItem maxLengthWatchlistItem
               in
               Html.div [] [ viewHtml ]
                 |> Query.fromHtml
@@ -323,7 +324,7 @@ suite =
             (\() ->
               let
                 viewHtml =
-                  pageViewFromMessages <| add santas
+                  pageViewFromMessages <| addItem santas
               in
               Html.div [] [ viewHtml ]
                 |> Query.fromHtml
@@ -332,21 +333,14 @@ suite =
             )
         ]
 
-
-    , let
-        add newMovieName =
-            [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
-            , Types.EditAddWatchlistItemInput newMovieName
-            ]
-      in
-      Test.describe
+    , Test.describe
         "When you submit a new movie name"
         [ Test.test
             "If the movie name is the empty string, ignores you."
             (\() ->
               let
                 model =
-                  modelFromMessages <| add ""
+                  modelFromMessages <| addItem ""
                 (_, cmd) =
                   model |> State.update Types.ClickAddWatchlistItem
               in
@@ -357,7 +351,7 @@ suite =
             (\() ->
               let
                 model =
-                  modelFromMessages <| add (maxLengthWatchlistItem ++ ".")
+                  modelFromMessages <| addItem (maxLengthWatchlistItem ++ ".")
                 (_, cmd) =
                   model |> State.update Types.ClickAddWatchlistItem
               in
@@ -368,11 +362,11 @@ suite =
               [ "How Do You Live", maxLengthWatchlistItem, santas ]
           in
           exampleMovieNames |> MoreTest.parameterized
-            "if the movie name is valid, makes a PUT request that prepends the movie name to the watchlist"
+            "If the movie name is valid, makes a PUT request that prepends the movie name to the watchlist"
             (\movieName ->
               let
                 model =
-                  modelFromMessages <| add movieName
+                  modelFromMessages <| addItem movieName
                 (_, cmd) =
                   model |> State.update Types.ClickAddWatchlistItem
               in
@@ -392,6 +386,80 @@ suite =
                       Expect.fail "The PUT request doesn't have a non-empty list of strings as its body"
                 _ ->
                   Expect.fail "Does not make a PUT request."
+            )
+        , let
+            movieName = "How Do You Live"
+            initialState = modelFromMessages <| addItem movieName
+            -- Each test case is a series of messages that will be applied to
+            -- the initial state. After the application processes all of those
+            -- messages, the movie name should still be present in the input
+            -- field.
+            testCases =
+              [ [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
+                , Types.EditAddWatchlistItemInput movieName
+                , Types.ClickAddWatchlistItem
+                ]
+              , [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
+                , Types.EditAddWatchlistItemInput movieName
+                , Types.ClickAddWatchlistItem
+                , Types.PutWatchlistCompleted <| Ok ()
+                ]
+              , [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
+                , Types.EditAddWatchlistItemInput movieName
+                , Types.ClickAddWatchlistItem
+                , Types.PutWatchlistCompleted <| Err Http.NetworkError
+                ]
+              , [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
+                , Types.EditAddWatchlistItemInput movieName
+                , Types.ClickAddWatchlistItem
+                , Types.PutWatchlistCompleted <| Ok ()
+                , Types.GetWatchlistCompleted <| Err <| Http.BadStatus 404
+                ]
+              ]
+          in
+          testCases |> MoreTest.parameterized
+            ("Leaves your text in the input field in the following situations:\n"
+              ++ "\t* While waiting for the PUT request to complete\n"
+              ++ "\t* While waiting for the subsequent GET request to complete\n"
+              ++ "\t* If the PUT request failed\n"
+              ++ "\t* If the PUT request succeeded but the GET request failed"
+            )
+            (\messages ->
+              let
+                appState = initialState |> applyMessages messages
+                viewHtml = appState.watchlistModel |> Watchlist.View.view
+              in
+              viewHtml
+                |> Query.fromHtml
+                |> Query.find [ Selector.class "add-watchlist-item" ]
+                |> Query.find [ Selector.tag "input" ]
+                |> Query.has
+                  [ Selector.attribute <| Attributes.value movieName ]
+            )
+
+        , Test.test
+            "Clears your text from the input if the get request completed successfully"
+            (\() ->
+              let
+                newMovie = "How Do You Live"
+                allMovies = newMovie :: miyazakiMovies
+                initialState = modelFromMessages <| addItem newMovie
+                appState = initialState
+                  |> applyMessages
+                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
+                    , Types.EditAddWatchlistItemInput newMovie
+                    , Types.ClickAddWatchlistItem
+                    , Types.PutWatchlistCompleted <| Ok ()
+                    , Types.GetWatchlistCompleted <| Ok allMovies
+                    ]
+                viewHtml = appState.watchlistModel |> Watchlist.View.view
+              in
+              viewHtml
+                |> Query.fromHtml
+                |> Query.find [ Selector.class "add-watchlist-item" ]
+                |> Query.find [ Selector.tag "input" ]
+                |> Query.has
+                  [ Selector.attribute <| Attributes.value "" ]
             )
         ]
 
