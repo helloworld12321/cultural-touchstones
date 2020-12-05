@@ -1,11 +1,13 @@
 module Watchlist.Types exposing
   ( Model(..)
+  , State
   , Watchlist
   , ValidationProblem(..)
   , getErrorText
   , maxWatchlistItemLength
   , putErrorText
   , validateNewItem
+  , stateFromModel
   )
 
 {-| These are the types and values used by the watchlist. -}
@@ -14,20 +16,24 @@ import Utils exposing (stringLengthUtf8)
 
 type Model
   -- This is the state when we have a watchlist. `list` is  `newItemText` is
-  = Present
-    -- The current items in the watchlist.
-    { list : Watchlist
-    -- The current contents of the text input where you can add new watchlist
-    -- items.
-    , newItemText : String
-    -- Whether newItemText passes the validator.
-    , newItemState : Result ValidationProblem ()
-    }
+  = Present State
   -- This is the state When we don't have a watchlist, but we're waiting for
   -- one.
   | Loading
   -- This is the state when we tried to get a watchlist, but it didn't work.
   | Error
+
+{-| The state of the watchlist UI, when everything has finished loading. -}
+type alias State =
+  -- The current items in the watchlist.
+  { list : Watchlist
+  -- The current contents of the text input where you can add new watchlist
+  -- items.
+  , newItemText : String
+  -- Whether newItemText passes the validator.
+  , newItemState : Result ValidationProblem ()
+  }
+
 
 {-| These are the complaints the validator could have with the contents of the
 new item input.
@@ -42,6 +48,18 @@ type ValidationProblem
 {-| The list of movies you want to watch. Position 0 is at the top of the list.
 -}
 type alias Watchlist = List String
+
+{-| If the UI has finished loading, return its state.
+
+If the UI is loading, or if it couldn't load because of an error, return
+Nothing.
+-}
+stateFromModel: Model -> Maybe State
+stateFromModel model =
+  case model of
+    Present state -> Just state
+    _ -> Nothing
+
 
 {-| This text should be displayed when getting the watchlist failed. -}
 getErrorText : String
