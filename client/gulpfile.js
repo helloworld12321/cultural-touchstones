@@ -21,12 +21,13 @@ del = del.promise;
 
 const dev = {
   name: 'development',
+  buildOutput: ['dist/*', 'build/*'],
 
   /**
    * Delete all the built output.
    */
   async clean() {
-    await del(['dist/*', 'build/*', this.fingerprintsJsonFile]);
+    await del(this.buildOutput);
   },
 
   /**
@@ -53,7 +54,7 @@ const dev = {
       .pipe(elm())
       .pipe(rename('elm.js'))
       .pipe(gulp.dest('dist/'));
-},
+  },
 
   async addFingerprintsToFileNames() {
     log.info(
@@ -81,6 +82,10 @@ const prod = {
 
   name: 'production',
   fingerprintsJsonFile: 'fingerprints.json',
+
+  get buildOutput() {
+    return ['dist/*', 'build/*', this.fingerprintsJsonFile];
+  },
 
   /**
    * Build any static HTML files, and put the output in the right place.
@@ -207,7 +212,8 @@ function watchedBuild(env) {
   };
 }
 
-exports.clean = dev.clean.bind(dev);
+exports.cleanDevelopment = dev.clean.bind(dev);
+exports.cleanProduction = prod.clean.bind(prod);
 exports.buildDevelopment = build(dev);
 exports.buildProduction = build(prod);
 exports.watchDevelopment = watchedBuild(dev);
