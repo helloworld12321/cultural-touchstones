@@ -54,7 +54,7 @@ const dev = {
       .pipe(elm())
       .pipe(rename('elm.js'))
       .pipe(gulp.dest('dist/'));
-},
+  },
 
   async addFingerprintsToFileNames() {
     log.info(
