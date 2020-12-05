@@ -13,7 +13,7 @@ import Watchlist.Types
 init : Types.Flags -> (Types.Model, Types.PseudoCmd Types.Message)
 init () =
   ( { snackbarModel = Nothing, watchlistModel = Watchlist.Types.Loading }
-  , Watchlist.Ajax.getWatchlist
+  , Watchlist.Ajax.getWatchlist Types.LoadWatchlistCompleted
   )
 
 update
@@ -22,12 +22,16 @@ update
   -> (Types.Model, Types.PseudoCmd Types.Message)
 update message =
   case message of
-    Types.GetWatchlistCompleted (Ok items) ->
-      setTheWatchlist items
-    Types.GetWatchlistCompleted (Err _) ->
-      respondToGetWatchlistError
+    Types.LoadWatchlistCompleted (Ok items) ->
+      loadTheWatchlist items
+    Types.LoadWatchlistCompleted (Err _) ->
+      respondToLoadWatchlistError
+    Types.ReloadWatchlistCompleted (Ok items) ->
+      reloadTheWatchlist items
+    Types.ReloadWatchlistCompleted (Err _) ->
+      respondToReloadWatchlistError
     Types.PutWatchlistCompleted (Ok ()) ->
-      respondToPutWatchlistSuccess
+      finishPuttingTheWatchlist
     Types.PutWatchlistCompleted (Err _) ->
       respondToPutWatchlistError
     Types.EditAddWatchlistItemInput newItemText ->
@@ -39,37 +43,30 @@ update message =
     Types.SnackbarNextTransitionState nextState ->
       transitionTheSnackbar nextState
 
-{-| Respond to a successful GetWatchlistCompleted event. -}
-setTheWatchlist
+{-| Respond to the scenario where we're loading the watchlist for the first
+time, and our GET request to the server was successful.
+-}
+loadTheWatchlist
   : Watchlist.Types.Watchlist
   -> Types.Model
   -> (Types.Model, Types.PseudoCmd Types.Message)
-setTheWatchlist items oldModel =
-  let
-    maybeOldWatchlist =
-      case oldModel.watchlistModel of
-        Watchlist.Types.Present oldWatchlist -> Just oldWatchlist
-        _ -> Nothing
-  in
+loadTheWatchlist items oldModel =
+  let maybeOldState = Watchlist.Types.stateFromModel oldModel.watchlistModel in
   ( { oldModel | watchlistModel =
         Watchlist.Types.Present
-          (maybeOldWatchlist
-            |> Maybe.map (\oldWatchlist -> { oldWatchlist | list = items })
-            |> Maybe.withDefault
-              { list = items
-              , newItemText = ""
-              , newItemState = Err Watchlist.Types.Empty
-              }
+          (maybeOldState
+            |> Maybe.map (\oldState -> { oldState | list = items })
+            |> Maybe.withDefault (initialWatchlistState items)
           )
     }
   , Types.NoCmd
   )
 
-{-| Respond to an unsuccessful GetWatchlistCompleted event. -}
-respondToGetWatchlistError
+{-| Like `loadTheWatchlist`, but when our request failed. -}
+respondToLoadWatchlistError
   : Types.Model
   -> (Types.Model, Types.PseudoCmd Types.Message)
-respondToGetWatchlistError oldModel =
+respondToLoadWatchlistError oldModel =
   ( { oldModel
     | snackbarModel =
         Just
@@ -82,19 +79,72 @@ respondToGetWatchlistError oldModel =
   , delaySnackbarState Snackbar.Types.Waxing
   )
 
-{-| Respond to a successful PutWatchlistCompleted event. -}
-respondToPutWatchlistSuccess
+{-| Respond to the scenario where we already have the watchlist, but we
+think it might have changed, so we requested it again, and our GET request
+was successful
+-}
+reloadTheWatchlist
+  : Watchlist.Types.Watchlist
+  -> Types.Model
+  -> (Types.Model, Types.PseudoCmd Types.Message)
+reloadTheWatchlist items oldModel =
+  let maybeOldState = Watchlist.Types.stateFromModel oldModel.watchlistModel in
+  ( { oldModel | watchlistModel =
+        Watchlist.Types.Present
+          (maybeOldState
+            |> Maybe.map (\oldState ->
+              { oldState
+              | list = items
+              -- Clear the "new item" input field.
+              , newItemText = ""
+              , newItemState = Err Watchlist.Types.Empty
+              })
+            |> Maybe.withDefault (initialWatchlistState items)
+          )
+    }
+  , Types.NoCmd
+  )
+
+{-| Like `reloadTheWatchlist`, but when our request failed. -}
+respondToReloadWatchlistError
   : Types.Model
   -> (Types.Model, Types.PseudoCmd Types.Message)
-respondToPutWatchlistSuccess oldModel =
+respondToReloadWatchlistError oldModel =
+  ( { oldModel
+    | snackbarModel =
+        Just
+          { transitionState = Snackbar.Types.Hidden
+          , text = Watchlist.Types.getErrorText
+          }
+    }
+  , delaySnackbarState Snackbar.Types.Waxing
+  )
+
+{-| The state of the watchlist when we've just loaded it for the first time
+with a set of items.
+-}
+initialWatchlistState: Watchlist.Types.Watchlist -> Watchlist.Types.State
+initialWatchlistState items =
+  { list = items
+  , newItemText = ""
+  , newItemState = Watchlist.Types.validateNewItem ""
+  }
+
+
+{-| Respond to the scenario where we successfully wrote our watchlist to
+the server. -}
+finishPuttingTheWatchlist
+  : Types.Model
+  -> (Types.Model, Types.PseudoCmd Types.Message)
+finishPuttingTheWatchlist oldModel =
   -- Now that we've written to the server successfully, we need to get the
   -- watchlist again to see the changes.
   -- (We could have just immediately updated the local model and saved
   -- ourselves an extra HTTP request, but that would have made recovering
   -- from an error harder.)
-  (oldModel, Watchlist.Ajax.getWatchlist)
+  (oldModel, Watchlist.Ajax.getWatchlist Types.ReloadWatchlistCompleted)
 
-{-| Respond to an unsuccessful PutWatchlistCompleted event. -}
+{-| like `finishPuttingTheWatchlist`, but when our request failed. -}
 respondToPutWatchlistError
   : Types.Model
   -> (Types.Model, Types.PseudoCmd Types.Message)

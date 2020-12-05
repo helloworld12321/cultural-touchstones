@@ -1,7 +1,8 @@
 module Types exposing
   ( Flags
-  , Model
+  , GetWatchlistResponder
   , Message(..)
+  , Model
   , PseudoCmd(..)
   , pseudoCmdToRealCmd
   )
@@ -24,15 +25,21 @@ type alias Model =
   }
 
 type Message
-  -- We receive this message when our request to the server to get the
-  -- watchlist completed (either successfully or unsuccessfully).
-  = GetWatchlistCompleted (Result Http.Error Watchlist.Types.Watchlist)
+  -- We receive this message when our request to the server to load the
+  -- watchlist for the first time completes (either successfully or
+  -- unsuccessfully).
+  = LoadWatchlistCompleted (Result Http.Error Watchlist.Types.Watchlist)
+
+  -- We receive this message if we try to get the watchlist from the server
+  -- again to see if anything has changed, and that request completed (either
+  -- successfully or unsuccessfully).
+  | ReloadWatchlistCompleted (Result Http.Error Watchlist.Types.Watchlist)
 
   -- We receive this message when our request to the server to change the
-  -- watchlist completed (either successfully or unsuccessfully).
+  -- watchlist completes (either successfully or unsuccessfully).
   | PutWatchlistCompleted (Result Http.Error ())
 
-  -- We receive this message when the edits the "add watchlist item" text
+  -- We receive this message when the user edits the "add watchlist item" text
   -- field. The string parameter is the current contents of that field.
   | EditAddWatchlistItemInput String
 
@@ -52,6 +59,14 @@ type Message
   -- This allows the transition animation to skip backwards or forwards as
   -- necessary.
   | SnackbarNextTransitionState (Maybe Snackbar.Types.TransitionState)
+
+
+{-| A message constructor that can be used to respond to a "GET watchlist"
+request. (Usually, either LoadWatchlistCompleted and ReloadWatchlistCompleted.)
+-}
+type alias GetWatchlistResponder =
+  Result Http.Error Watchlist.Types.Watchlist -> Message
+
 
 {-| Each PseudoCmd msg unambiguously represents a `Cmd msg`, except that we
 can manipulate a PseudoCmd and do pattern-matching on it. We use this type

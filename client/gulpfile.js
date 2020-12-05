@@ -20,7 +20,7 @@ path = path.posix;
 del = del.promise;
 
 const dev = {
-  fingerprintsJsonFile: 'fingerprints.json',
+  name: 'development',
 
   /**
    * Delete all the built output.
@@ -79,6 +79,9 @@ const dev = {
 const prod = {
   ...dev,
 
+  name: 'production',
+  fingerprintsJsonFile: 'fingerprints.json',
+
   /**
    * Build any static HTML files, and put the output in the right place.
    */
@@ -136,7 +139,7 @@ const prod = {
 
 /**
  * Fingerprint the built CSS and JavaScript files, so that the browser knows
- * when it can use a cached version and when it has to request a new verison
+ * when it can use a cached version and when it has to request a new version
  * from the server.
  *
  * Specifically, given a set of files to fingerprint, this task
@@ -174,10 +177,13 @@ function build(env) {
   const buildSass = env.buildSass.bind(env);
   const buildElm = env.buildElm.bind(env);
 
-  return gulp.series(
-    gulp.parallel(buildHtml, buildSass, buildElm),
-    fingerprintFiles(env),
-  );
+  return async function() {
+    log.info(chalk`Building in {green ${env.name}} mode`);
+    gulp.series(
+      gulp.parallel(buildHtml, buildSass, buildElm),
+      fingerprintFiles(env),
+    )();
+  };
 }
 
 /**
