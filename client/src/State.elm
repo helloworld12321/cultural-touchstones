@@ -13,34 +13,35 @@ import Watchlist.Types
 init : Types.Flags -> (Types.Model, Types.PseudoCmd Types.Message)
 init () =
   ( { snackbarModel = Nothing, watchlistModel = Watchlist.Types.Loading }
-  , Watchlist.Ajax.getWatchlist
+  , Watchlist.Ajax.getWatchlist Types.LoadWatchlistCompleted
   )
 
 update
   : Types.Message
   -> Types.Model
   -> (Types.Model, Types.PseudoCmd Types.Message)
-update message model =
+update message =
   case message of
-    Types.GetWatchlistCompleted (Ok items) ->
-      model |> setTheWatchlist items
-    Types.GetWatchlistCompleted (Err _) ->
-      case model.watchlistModel of
-        Watchlist.Types.Loading -> model |> couldNotLoadTheWatchlist
-        Watchlist.Types.Error -> model |> couldNotLoadTheWatchlist
-        Watchlist.Types.Present _ -> model |> couldNotUpdateTheWatchlist
+    Types.LoadWatchlistCompleted (Ok items) ->
+      setTheWatchlist items
+    Types.LoadWatchlistCompleted (Err _) ->
+      couldNotLoadTheWatchlist
+    Types.ReloadWatchlistCompleted (Ok items) ->
+      setTheWatchlist items
+    Types.ReloadWatchlistCompleted (Err _) ->
+      couldNotReloadTheWatchlist
     Types.PutWatchlistCompleted (Ok ()) ->
-      model |> respondToPutWatchlistSuccess
+      respondToPutWatchlistSuccess
     Types.PutWatchlistCompleted (Err _) ->
-      model |> respondToPutWatchlistError
+      respondToPutWatchlistError
     Types.EditAddWatchlistItemInput newItemText ->
-      model |> updateNewItemInput newItemText
+      updateNewItemInput newItemText
     Types.ClickAddWatchlistItem ->
-      model |> maybeAddWatchlistItem
+      maybeAddWatchlistItem
     Types.ClickDeleteWatchlistItem position ->
-      model |> maybeDeleteWatchlistItem position
+      maybeDeleteWatchlistItem position
     Types.SnackbarNextTransitionState nextState ->
-      model |> transitionTheSnackbar nextState
+      transitionTheSnackbar nextState
 
 {-| Respond to a successful GetWatchlistCompleted event. -}
 setTheWatchlist
@@ -90,10 +91,10 @@ couldNotLoadTheWatchlist oldModel =
 {-| Respond to the scenario where we already have the watchlist, but we
 think it might have changed, so we requested it again, and that request failed.
 -}
-couldNotUpdateTheWatchlist
+couldNotReloadTheWatchlist
   : Types.Model
   -> (Types.Model, Types.PseudoCmd Types.Message)
-couldNotUpdateTheWatchlist oldModel =
+couldNotReloadTheWatchlist oldModel =
   ( { oldModel
     | snackbarModel =
         Just
@@ -114,7 +115,7 @@ respondToPutWatchlistSuccess oldModel =
   -- (We could have just immediately updated the local model and saved
   -- ourselves an extra HTTP request, but that would have made recovering
   -- from an error harder.)
-  (oldModel, Watchlist.Ajax.getWatchlist)
+  (oldModel, Watchlist.Ajax.getWatchlist Types.ReloadWatchlistCompleted)
 
 {-| Respond to an unsuccessful PutWatchlistCompleted event. -}
 respondToPutWatchlistError

@@ -20,13 +20,18 @@ encodeWatchlist =
   Encode.list Encode.string
 
 
-{-| This command requests the watchlist from the server. -}
-getWatchlist : Types.PseudoCmd Types.Message
-getWatchlist =
+{-| This command requests the watchlist from the server.
+
+You can customize what message you want it to send when it completes. (You
+probably either want it to send Types.LoadWatchlistCompleted or
+Types.ReloadWatchlistCompleted.)
+-}
+getWatchlist : Types.GetWatchlistResponder -> Types.PseudoCmd Types.Message
+getWatchlist responder =
   Types.GetCmd
     { url = "/api/watchlist"
     , expect =
-        Http.expectJson Types.GetWatchlistCompleted watchlistDecoder
+        Http.expectJson responder watchlistDecoder
     }
 
 {-| This command sends the watchlist to the server (replacing the existing

@@ -1,9 +1,9 @@
 module Utils exposing
-  ( wait
-  , dropIndices
+  ( dropIndices
   , flip
   , stringLengthUtf8
- )
+  , wait
+  )
 
 {-| This file contains some helper functions. -}
 
