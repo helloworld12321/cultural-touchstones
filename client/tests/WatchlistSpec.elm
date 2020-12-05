@@ -73,7 +73,7 @@ movies, and then types a new movie name into the watchlist input.
 -}
 addItem : String -> List Types.Message
 addItem newMovieName =
-  [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
+  [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies
   , Types.EditAddWatchlistItemInput newMovieName
   ]
 
@@ -140,14 +140,14 @@ suite =
   Test.describe
     "The HTML generated for the watchlist"
     [ Test.describe
-        "When getting the watchlist completed successfully"
+        "When loading the watchlist completed successfully"
         [ Test.test
             "Contains an empty <ul class=\"watchlist\"> when there aren't any watchlist items"
             (\() ->
               let
                 viewHtml =
                   watchlistViewFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok [] ]
+                    [ Types.LoadWatchlistCompleted <| Ok [] ]
               in
               Html.div [] [ viewHtml ]
                 |> Query.fromHtml
@@ -166,7 +166,7 @@ suite =
               let
                 viewHtml =
                   watchlistViewFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies ]
+                    [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies ]
               in
               viewHtml
                 |> Expect.all (List.map expectContainsLiFor miyazakiMovies)
@@ -177,7 +177,7 @@ suite =
               let
                 viewHtml =
                   watchlistViewFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies ]
+                    [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies ]
               in
               Html.div [] [ viewHtml ]
                 |> Query.fromHtml
@@ -195,7 +195,7 @@ suite =
               let
                 viewHtml =
                   watchlistViewFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok [] ]
+                    [ Types.LoadWatchlistCompleted <| Ok [] ]
               in
               Html.div [] [ viewHtml ]
                 |> Query.fromHtml
@@ -214,7 +214,7 @@ suite =
               let
                 viewHtml =
                   watchlistViewFromMessages
-                    [ Types.GetWatchlistCompleted <| Err <| Http.BadStatus 400
+                    [ Types.LoadWatchlistCompleted <| Err <| Http.BadStatus 400
                     ]
               in
               Html.div [] [ viewHtml ]
@@ -229,7 +229,7 @@ suite =
               let
                 viewHtml =
                   pageViewFromMessages
-                    [ Types.GetWatchlistCompleted <| Err <| Http.BadStatus 400
+                    [ Types.LoadWatchlistCompleted <| Err <| Http.BadStatus 400
                     ]
               in
               Html.div [] [ viewHtml ]
@@ -260,7 +260,7 @@ suite =
               let
                 viewHtml =
                   watchlistViewFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
+                    [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies
                     , Types.EditAddWatchlistItemInput "How Do You Live?"
                     , Types.ClickAddWatchlistItem
                     , Types.PutWatchlistCompleted <| Err <| Http.BadStatus 400
@@ -279,7 +279,7 @@ suite =
               let
                 viewHtml =
                   pageViewFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
+                    [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies
                     , Types.EditAddWatchlistItemInput "How Do You Live?"
                     , Types.ClickAddWatchlistItem
                     , Types.PutWatchlistCompleted <| Err <| Http.BadStatus 400
@@ -395,25 +395,25 @@ suite =
             -- messages, the movie name should still be present in the input
             -- field.
             testCases =
-              [ [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
+              [ [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies
                 , Types.EditAddWatchlistItemInput movieName
                 , Types.ClickAddWatchlistItem
                 ]
-              , [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
+              , [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies
                 , Types.EditAddWatchlistItemInput movieName
                 , Types.ClickAddWatchlistItem
                 , Types.PutWatchlistCompleted <| Ok ()
                 ]
-              , [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
+              , [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies
                 , Types.EditAddWatchlistItemInput movieName
                 , Types.ClickAddWatchlistItem
                 , Types.PutWatchlistCompleted <| Err Http.NetworkError
                 ]
-              , [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
+              , [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies
                 , Types.EditAddWatchlistItemInput movieName
                 , Types.ClickAddWatchlistItem
                 , Types.PutWatchlistCompleted <| Ok ()
-                , Types.GetWatchlistCompleted <| Err <| Http.BadStatus 404
+                , Types.ReloadWatchlistCompleted <| Err <| Http.BadStatus 404
                 ]
               ]
           in
@@ -446,11 +446,11 @@ suite =
                 initialState = modelFromMessages <| addItem newMovie
                 appState = initialState
                   |> applyMessages
-                    [ Types.GetWatchlistCompleted <| Ok miyazakiMovies
+                    [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies
                     , Types.EditAddWatchlistItemInput newMovie
                     , Types.ClickAddWatchlistItem
                     , Types.PutWatchlistCompleted <| Ok ()
-                    , Types.GetWatchlistCompleted <| Ok allMovies
+                    , Types.ReloadWatchlistCompleted <| Ok allMovies
                     ]
                 viewHtml = appState.watchlistModel |> Watchlist.View.view
               in
@@ -471,7 +471,7 @@ suite =
               let
                 model =
                   modelFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok twilightMovies ]
+                    [ Types.LoadWatchlistCompleted <| Ok twilightMovies ]
                 (_, cmd) =
                   model
                     |> State.update (Types.ClickDeleteWatchlistItem position)
@@ -493,7 +493,7 @@ suite =
               let
                 model =
                   modelFromMessages
-                    [ Types.GetWatchlistCompleted <| Ok twilightMovies ]
+                    [ Types.LoadWatchlistCompleted <| Ok twilightMovies ]
                 (_, cmd) =
                   model
                     |> State.update (Types.ClickDeleteWatchlistItem position)
