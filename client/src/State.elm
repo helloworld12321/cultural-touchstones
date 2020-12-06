@@ -278,7 +278,7 @@ delaySnackbarState nextTransitionState =
   -- Also, the delay can't be too small, or else Elm may not have have finished
   -- rendering the previous state by the time the message is received. (The
   -- snackbar should be robust against that sort of sequence-breaking, but it
-  -- would be *better* if it didn't skip steps.
+  -- would be *better* if it didn't skip steps.)
   let
     message = Types.SnackbarNextTransitionState <| Just nextTransitionState
   in
