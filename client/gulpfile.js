@@ -3,6 +3,7 @@
 let fs = require('fs');
 let path = require('path');
 
+const bach = require('bach');
 const chalk = require('chalk');
 let del = require('delete');
 const log = require('fancy-log');
@@ -18,6 +19,15 @@ const uglify = require('gulp-uglify');
 fs = fs.promises;
 path = path.posix;
 del = del.promise;
+
+/**
+ * Set the 'last accessed' and 'last modified' times of a file to right now.
+ */
+async function touch(filePath) {
+  const now = new Date();
+  await fs.utimes(filePath, now, now);
+}
+
 
 const dev = {
   name: 'development',
@@ -56,17 +66,9 @@ const dev = {
       .pipe(gulp.dest('dist/'));
   },
 
-  async addFingerprintsToFileNames() {
+  async fingerprintFiles() {
     log.info(
-      chalk`In dev mode; {bgYellow skipping} step `
-      + chalk`{cyan addFingerprintsToFileNames}`
-    );
-  },
-
-  async addFingerprintsToLinks() {
-    log.info(
-      chalk`In dev mode; {bgYellow skipping} step `
-      + chalk`{cyan addFingerprintsToLinks}`
+      chalk`In dev mode; {bgYellow skipping} step {cyan fingerprintFiles}`
     );
   },
 }
@@ -121,47 +123,39 @@ const prod = {
       .pipe(gulp.dest('build/'));
   },
 
-  addFingerprintsToFileNames() {
-    return gulp.src(['build/*.js', 'build/styles/*.css'], {base: 'build'})
-      .pipe(rev())
-      .pipe(gulp.dest('dist/'))
-      .pipe(rev.manifest(this.fingerprintsJsonFile))
-      .pipe(gulp.dest('.'));
-  },
+  fingerprintFiles(done) {
+    // Use () => {} functions, so that we have access to `this`.
+    const takeHashes = () => {
+      return gulp.src(['build/*.js', 'build/styles/*.css'], {base: 'build'})
+        .pipe(rev())
+        .pipe(gulp.dest('dist/'))
+        .pipe(rev.manifest(this.fingerprintsJsonFile))
+        .pipe(gulp.dest('.'));
+    }
 
-  addFingerprintsToLinks() {
-    return gulp.src(['build/*.html'])
-      .pipe(fingerprint(this.fingerprintsJsonFile, {verbose: true}))
-      .pipe(gulp.dest('dist/'));
+    const editLinks = () => {
+      return gulp.src(['build/*.html'])
+        .pipe(fingerprint(this.fingerprintsJsonFile, {verbose: true}))
+        .pipe(gulp.dest('dist/'))
+    };
+
+    // gulp-fingerprint doesn't actually set the 'last accessed' and 'last
+    // modified' dates of the files it outputs, so we have to do that
+    // ourselves.
+    const touchFiles = async () => {
+      // Get all the 'build/*.html' files, just like we did before.
+      const fileNames = (await fs.readdir('build'))
+        .filter(name => name.match(/\.html$/));
+
+      // Then, touch the corresponding files in the 'dist' directory.
+      await Promise.all(
+        fileNames.map(name => touch(path.join('dist', name)))
+      );
+    }
+
+    bach.series(takeHashes, editLinks, touchFiles)(done);
   },
 };
-
-/**
- * Fingerprint the built CSS and JavaScript files, so that the browser knows
- * when it can use a cached version and when it has to request a new version
- * from the server.
- *
- * Specifically, given a set of files to fingerprint, this task
- *
- * 1) For each file, calculate that file's hash.
- * 2) For each file, append that file's hash to its file name.
- * 3) For each file, change any links to that file in index.html.
- *
- * This function returns a task function.
- *
- * @param env An object, either `dev` or `prod`, which describes how to perform
- *   tasks.
- */
-function fingerprintFiles(env) {
-  // Make sure to bind methods to their enclosing object before we pass them
-  // to gulp.series(). Otherwise, the methods won't keep a reference to their
-  // enclosing object. (They won't have a value for `this`.)
-  const addFingerprintsToFileNames = env.addFingerprintsToFileNames.bind(env);
-  const addFingerprintsToLinks = env.addFingerprintsToLinks.bind(env);
-
-  return gulp.series(addFingerprintsToFileNames, addFingerprintsToLinks);
-}
-
 
 /**
  * Build all of the files in the project.
@@ -175,12 +169,13 @@ function build(env) {
   const buildHtml = env.buildHtml.bind(env);
   const buildSass = env.buildSass.bind(env);
   const buildElm = env.buildElm.bind(env);
+  const fingerprintFiles = env.fingerprintFiles.bind(env);
 
   return async function() {
     log.info(chalk`Building in {green ${env.name}} mode`);
     gulp.series(
       gulp.parallel(buildHtml, buildSass, buildElm),
-      fingerprintFiles(env),
+      fingerprintFiles,
     )();
   };
 }
