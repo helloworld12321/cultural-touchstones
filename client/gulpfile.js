@@ -58,21 +58,15 @@ const dev = {
 
   async addFingerprintsToFileNames() {
     log.info(
-      'In dev mode; '
-        + chalk.yellow('skipping')
-        + ' step \''
-        + chalk.cyan('addFingerprintsToFileNames')
-        + '\'',
+      chalk`In dev mode; {bgYellow skipping} step `
+      + chalk`{cyan addFingerprintsToFileNames}`
     );
   },
 
   async addFingerprintsToLinks() {
     log.info(
-      'In dev mode; '
-      + chalk.yellow('skipping')
-      + ' step \''
-      + chalk.cyan('addFingerprintsToLinks')
-      + '\'',
+      chalk`In dev mode; {bgYellow skipping} step `
+      + chalk`{cyan addFingerprintsToLinks}`
     );
   },
 }
