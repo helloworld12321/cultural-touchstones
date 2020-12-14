@@ -171,12 +171,12 @@ function build(env) {
   const buildElm = env.buildElm.bind(env);
   const fingerprintFiles = env.fingerprintFiles.bind(env);
 
-  return async function() {
+  return function(done) {
     log.info(chalk`Building in {green ${env.name}} mode`);
     gulp.series(
       gulp.parallel(buildHtml, buildSass, buildElm),
       fingerprintFiles,
-    )();
+    )(done);
   };
 }
 
