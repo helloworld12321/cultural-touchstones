@@ -1,0 +1,81 @@
+name: Test build
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.9]
+    steps:
+    # Do some initial setup.
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    # Install and start the database.
+    - name: Add the MariaDB apt repository
+      run: |
+        wget https://downloads.mariadb.com/MariaDB/mariadb_repo_setup \
+          && chmod +x mariadb_repo_setup \
+          && sudo ./mariadb_repo_setup \
+            --mariadb-server-version="mariadb-10.5" \
+          && sudo apt update
+    - name: Install apt dependencies
+      run: |
+        sudo apt-get install -y \
+          libmariadb3 \
+          libmariadb-dev \
+          mariadb-server \
+          mariadb-server-10.5 \
+          mariadb-client \
+          mariadb-client-10.5
+    - name: Shut down Ubuntu's MySQL instance
+      run: sudo service mysql stop
+    - name: Set the MariaDB root password
+      # This is a bit hacky. On an actual installation, we'd use a command like
+      # `mariadb-admin to set the initial root password, but that command
+      # doesn't work well in non-interactive mode.
+      run: |
+        echo >>database/startup.sql \
+          'SET PASSWORD FOR 'root'@'localhost' = PASSWORD("my_demo_password");'
+    - name: Start MariaDB
+      run: sudo mariadbd --init-file="${PWD}/database/startup.sql" &
+
+    # Install and start the app server.
+    - run: pip install --upgrade pip && pip install wheel
+    - name: Install Python dependencies
+      run: cd server && pip install -r requirements/production.txt
+    - name: Start Gunicorn
+      run: cd server && python setup.py run --production
+      env:
+        DB_PASSWORD: my_demo_password
+
+    # Build the client-side files.
+    - name: Use Elm 0.19.1
+      uses: jorelali/setup-elm@v2
+      with:
+        elm-version: 0.19.1
+    - name: Install npm dependencies
+      run: cd client && npm ci
+    - name: Build the client-side
+      run: cd client && npm run build:prod
+
+    # Install and start nginx.
+    - name: Install nginx
+      run: sudo apt-get install -y nginx
+    - name: Use port 9999 instead of port 80
+      # It looks like someone on this VM is already using port 80.
+      # I probably don't want to mess with that, so use port 9999 instead.
+      run: sed -i 's/listen 80;/listen 9999;/' nginx.prod.conf
+    - name: Start nginx
+      run: sudo nginx -p . -c nginx.prod.conf
+
+    # Test that the project is up and running!
+    - name: Make sure we can get the static files
+      run: curl --fail -L 0.0.0.0:9999
+    - name: Make sure that we can talk to the API
+      run: curl --fail -L 0.0.0.0:9999/api/watchlist
