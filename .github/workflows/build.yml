@@ -69,11 +69,15 @@ jobs:
     # Install and start nginx.
     - name: Install nginx
       run: sudo apt-get install -y nginx
+    - name: Use port 9999 instead of port 80
+      # It looks like someone on this VM is already using port 80.
+      # I probably don't want to mess with that, so use port 9999 instead.
+      run: sed -i 's/listen 80;/listen 9999;/' nginx.prod.conf
     - name: Start nginx
       run: sudo nginx -p . -c nginx.prod.conf
 
     # Test that the project is up and running!
     - name: Make sure we can get the static files
-      run: curl --fail -L 0.0.0.0
+      run: curl --fail -L 0.0.0.0:9999
     - name: Make sure that we can talk to the API
-      run: curl --fail -L 0.0.0.0/api/watchlist
+      run: curl --fail -L 0.0.0.0:9999/api/watchlist
