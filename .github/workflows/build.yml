@@ -40,8 +40,8 @@ jobs:
       # `mariadb-admin to set the initial root password, but that command
       # doesn't work well in non-interactive mode.
       run: |
-        echo >>startup.sql <<EOF
-        SET PASSWORD FOR 'root'@'localhost' = PASSWORD("my_demo_password");
+        echo >>startup.sql \
+          'SET PASSWORD FOR 'root'@'localhost' = PASSWORD("my_demo_password");'
     - name: Start MariaDB
       run: sudo mariadbd --init-file="${PWD}/database/startup.sql" &
 
