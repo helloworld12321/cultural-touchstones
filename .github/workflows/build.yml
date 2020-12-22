@@ -41,9 +41,7 @@ jobs:
       # doesn't work well in non-interactive mode.
       run: |
         echo >>startup.sql <<EOF
-        CREATE OR REPLACE USER 'root'@'localhost'
-          IDENTIFIED BY 'my_demo_password';
-        EOF
+        SET PASSWORD FOR 'root'@'localhost' = PASSWORD("my_demo_password");
     - name: Start MariaDB
       run: sudo mariadbd --init-file="${PWD}/database/startup.sql" &
 
