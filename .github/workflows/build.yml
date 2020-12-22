@@ -1,0 +1,72 @@
+name: Test Build
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.9]
+    steps:
+    # Do some initial setup.
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    # Install and start the database.
+    - name: Add the MariaDB apt repository
+      run: |
+        wget https://downloads.mariadb.com/MariaDB/mariadb_repo_setup \
+          && chmod +x mariadb_repo_setup \
+          && sudo ./mariadb_repo_setup \
+            --mariadb-server-version="mariadb-10.5" \
+          && sudo apt update
+    - name: Install apt dependencies
+      run: |
+        sudo apt-get install -y \
+          libmariadb3 \
+          libmariadb-dev \
+          mariadb-server \
+          mariadb-server-10.5 \
+          mariadb-client \
+          mariadb-client-10.5
+    - name: Shut down Ubuntu's MySQL instance
+      run: sudo service mysql stop
+    - name: Start MariaDB
+      run: sudo mariadbd --init-file="${PWD}/database/startup.sql" &
+    - name: Set the MariaDB root password
+      run: sudo mariadb-admin -u root password my_demo_password
+
+    # Install and start the app server.
+    - run: pip install --upgrade pip && pip install wheel
+    - name: Install Python dependencies
+      run: pip install -r requirements/production.txt
+    - name: Start Gunicorn
+      run: python setup.py run --production
+      env:
+        DB_PASSWORD: my_demo_password
+
+    # Build the client-side files.
+    - name: Use Elm 0.19.1
+      uses: jorelali/setup-elm@v2
+      with:
+        elm-version: 0.19.1
+    - name: Install npm dependencies
+      run: npm ci
+    - name: Build the client-side
+      run: npm build:prod
+
+    # Install and start nginx.
+    - name: Install nginx
+      run: sudo apt-get install -y nginx
+    - name: Start nginx
+      run: sudo nginx run -p . -c nginx.prod.conf
+
+    # Test that the project is up and running!
+    - name: Make sure we can get the static files
+      run: curl --fail -L 0.0.0.0
+    - name: Make sure that we can talk to the API
+      run: curl --fail -L 0.0.0.0/api/watchlist
