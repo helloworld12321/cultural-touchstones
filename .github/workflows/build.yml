@@ -64,7 +64,7 @@ jobs:
     - name: Install npm dependencies
       run: cd client && npm ci
     - name: Build the client-side
-      run: cd client && npm build:prod
+      run: cd client && npm run build:prod
 
     # Install and start nginx.
     - name: Install nginx
