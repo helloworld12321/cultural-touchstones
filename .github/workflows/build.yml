@@ -62,9 +62,9 @@ jobs:
       with:
         elm-version: 0.19.1
     - name: Install npm dependencies
-      run: npm ci
+      run: cd client && npm ci
     - name: Build the client-side
-      run: npm build:prod
+      run: cd client && npm build:prod
 
     # Install and start nginx.
     - name: Install nginx
