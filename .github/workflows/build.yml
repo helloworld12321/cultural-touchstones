@@ -70,7 +70,7 @@ jobs:
     - name: Install nginx
       run: sudo apt-get install -y nginx
     - name: Start nginx
-      run: sudo nginx run -p . -c nginx.prod.conf
+      run: sudo nginx -p . -c nginx.prod.conf
 
     # Test that the project is up and running!
     - name: Make sure we can get the static files
