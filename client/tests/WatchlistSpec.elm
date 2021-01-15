@@ -263,7 +263,9 @@ suite =
                     [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies
                     , Types.EditAddWatchlistItemInput "How Do You Live?"
                     , Types.ClickAddWatchlistItem
-                    , Types.PutWatchlistCompleted <| Err <| Http.BadStatus 400
+                    , Types.PutWatchlistCompleted
+                        { shouldClearWatchlistInput = True }
+                        (Err <| Http.BadStatus 400)
                     ]
               in
               viewHtml
@@ -282,7 +284,9 @@ suite =
                     [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies
                     , Types.EditAddWatchlistItemInput "How Do You Live?"
                     , Types.ClickAddWatchlistItem
-                    , Types.PutWatchlistCompleted <| Err <| Http.BadStatus 400
+                    , Types.PutWatchlistCompleted
+                        { shouldClearWatchlistInput = True }
+                        (Err <| Http.BadStatus 400)
                     ]
               in
               Html.div [] [ viewHtml ]
@@ -402,27 +406,16 @@ suite =
               , [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies
                 , Types.EditAddWatchlistItemInput movieName
                 , Types.ClickAddWatchlistItem
-                , Types.PutWatchlistCompleted <| Ok ()
-                ]
-              , [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies
-                , Types.EditAddWatchlistItemInput movieName
-                , Types.ClickAddWatchlistItem
-                , Types.PutWatchlistCompleted <| Err Http.NetworkError
-                ]
-              , [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies
-                , Types.EditAddWatchlistItemInput movieName
-                , Types.ClickAddWatchlistItem
-                , Types.PutWatchlistCompleted <| Ok ()
-                , Types.ReloadWatchlistCompleted <| Err <| Http.BadStatus 404
+                , Types.PutWatchlistCompleted
+                    { shouldClearWatchlistInput = True }
+                    (Err Http.NetworkError)
                 ]
               ]
           in
           testCases |> MoreTest.parameterized
             ("Leaves your text in the input field in the following situations:\n"
               ++ "\t* While waiting for the PUT request to complete\n"
-              ++ "\t* While waiting for the subsequent GET request to complete\n"
               ++ "\t* If the PUT request failed\n"
-              ++ "\t* If the PUT request succeeded but the GET request failed"
             )
             (\messages ->
               let
@@ -438,7 +431,7 @@ suite =
             )
 
         , Test.test
-            "Clears your text from the input if the get request completed successfully"
+            "Clears your text from the input if the PUT request completed successfully"
             (\() ->
               let
                 newMovie = "How Do You Live"
@@ -449,8 +442,9 @@ suite =
                     [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies
                     , Types.EditAddWatchlistItemInput newMovie
                     , Types.ClickAddWatchlistItem
-                    , Types.PutWatchlistCompleted <| Ok ()
-                    , Types.ReloadWatchlistCompleted <| Ok allMovies
+                    , Types.PutWatchlistCompleted
+                        { shouldClearWatchlistInput = True }
+                        (Ok ())
                     ]
                 viewHtml = appState.watchlistModel |> Watchlist.View.view
               in
@@ -522,23 +516,31 @@ suite =
               , [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies
                 , Types.EditAddWatchlistItemInput movieName
                 , Types.ClickDeleteWatchlistItem 0
-                , Types.PutWatchlistCompleted <| Ok ()
+                , Types.PutWatchlistCompleted
+                    { shouldClearWatchlistInput = False }
+                    (Ok ())
                 ]
               , [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies
                 , Types.EditAddWatchlistItemInput movieName
                 , Types.ClickDeleteWatchlistItem 0
-                , Types.PutWatchlistCompleted <| Err Http.NetworkError
+                , Types.PutWatchlistCompleted
+                    { shouldClearWatchlistInput = False }
+                    (Err Http.NetworkError)
                 ]
               , [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies
                 , Types.EditAddWatchlistItemInput movieName
                 , Types.ClickDeleteWatchlistItem 0
-                , Types.PutWatchlistCompleted <| Ok ()
+                , Types.PutWatchlistCompleted
+                    { shouldClearWatchlistInput = False }
+                    (Ok ())
                 , Types.ReloadWatchlistCompleted <| Err <| Http.BadStatus 404
                 ]
               , [ Types.LoadWatchlistCompleted <| Ok miyazakiMovies
                 , Types.EditAddWatchlistItemInput movieName
                 , Types.ClickDeleteWatchlistItem 0
-                , Types.PutWatchlistCompleted <| Ok ()
+                , Types.PutWatchlistCompleted
+                    { shouldClearWatchlistInput = False }
+                    (Ok ())
                 , Types.ReloadWatchlistCompleted
                     (Ok (miyazakiMovies |> List.tail |> Maybe.withDefault []))
                 ]
