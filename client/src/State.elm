@@ -30,9 +30,9 @@ update message =
       reloadTheWatchlist items
     Types.ReloadWatchlistCompleted (Err _) ->
       respondToReloadWatchlistError
-    Types.PutWatchlistCompleted (Ok ()) ->
-      finishPuttingTheWatchlist
-    Types.PutWatchlistCompleted (Err _) ->
+    Types.PutWatchlistCompleted options (Ok ()) ->
+      finishPuttingTheWatchlist options
+    Types.PutWatchlistCompleted _ (Err _) ->
       respondToPutWatchlistError
     Types.EditAddWatchlistItemInput newItemText ->
       updateNewItemInput newItemText
@@ -81,24 +81,20 @@ respondToLoadWatchlistError oldModel =
 
 {-| Respond to the scenario where we already have the watchlist, but we
 think it might have changed, so we requested it again, and our GET request
-was successful
+was successful.
 -}
 reloadTheWatchlist
   : Watchlist.Types.Watchlist
   -> Types.Model
   -> (Types.Model, Types.PseudoCmd Types.Message)
 reloadTheWatchlist items oldModel =
-  let maybeOldState = Watchlist.Types.stateFromModel oldModel.watchlistModel in
+  let
+    maybeOldState = Watchlist.Types.stateFromModel oldModel.watchlistModel
+  in
   ( { oldModel | watchlistModel =
         Watchlist.Types.Present
           (maybeOldState
-            |> Maybe.map (\oldState ->
-              { oldState
-              | list = items
-              -- Clear the "new item" input field.
-              , newItemText = ""
-              , newItemState = Err Watchlist.Types.Empty
-              })
+            |> Maybe.map (\oldState -> { oldState | list = items })
             |> Maybe.withDefault (initialWatchlistState items)
           )
     }
@@ -132,17 +128,46 @@ initialWatchlistState items =
 
 
 {-| Respond to the scenario where we successfully wrote our watchlist to
-the server. -}
+the server.
+
+We may or may not want to clear the `newItemInput` field on the watchlist
+state; that depends on what triggered the put request. (If you want to clear
+the new item input, set `shouldClearWatchlistInput` to True.)
+-}
 finishPuttingTheWatchlist
-  : Types.Model
+  : { shouldClearWatchlistInput: Bool }
+  -> Types.Model
   -> (Types.Model, Types.PseudoCmd Types.Message)
-finishPuttingTheWatchlist oldModel =
+finishPuttingTheWatchlist options oldModel =
   -- Now that we've written to the server successfully, we need to get the
   -- watchlist again to see the changes.
   -- (We could have just immediately updated the local model and saved
   -- ourselves an extra HTTP request, but that would have made recovering
   -- from an error harder.)
-  (oldModel, Watchlist.Ajax.getWatchlist Types.ReloadWatchlistCompleted)
+  let
+    updateNewItemText oldState =
+      if options.shouldClearWatchlistInput then "" else oldState.newItemText
+
+
+    updateState oldState =
+      let newItemText = updateNewItemText oldState in
+      { oldState
+      | newItemText = newItemText
+      , newItemState = Watchlist.Types.validateNewItem newItemText
+      }
+
+    newWatchlistModel =
+      case oldModel.watchlistModel of
+        Watchlist.Types.Present oldState ->
+          Watchlist.Types.Present <| updateState oldState
+        Watchlist.Types.Loading ->
+          Watchlist.Types.Loading
+        Watchlist.Types.Error ->
+          Watchlist.Types.Error
+  in
+  ( { oldModel | watchlistModel = newWatchlistModel }
+  , Watchlist.Ajax.getWatchlist Types.ReloadWatchlistCompleted
+  )
 
 {-| like `finishPuttingTheWatchlist`, but when our request failed. -}
 respondToPutWatchlistError
@@ -191,8 +216,16 @@ maybeAddWatchlistItem oldModel =
   case oldModel.watchlistModel of
     Watchlist.Types.Present { list, newItemText, newItemState } ->
       case newItemState of
-        Ok () -> (oldModel, Watchlist.Ajax.putWatchlist <| newItemText :: list)
-        _ -> (oldModel, Types.NoCmd)
+        Ok () ->
+          let
+            request =
+              Watchlist.Ajax.putWatchlist
+                { shouldClearWatchlistInput = True }
+                (newItemText :: list)
+          in
+          (oldModel, request)
+        _ ->
+          (oldModel, Types.NoCmd)
     _ ->
       -- If there isn't currently a watchlist, just ignore this message.
       (oldModel, Types.NoCmd)
@@ -212,9 +245,13 @@ maybeDeleteWatchlistItem position oldModel =
   case oldModel.watchlistModel of
     Watchlist.Types.Present { list } ->
       if 0 <= position && position < List.length list then
-        ( oldModel
-        , Watchlist.Ajax.putWatchlist <| dropIndices [ position ] list
-        )
+        let
+          request =
+            Watchlist.Ajax.putWatchlist
+              { shouldClearWatchlistInput = False }
+              (dropIndices [ position ] list)
+        in
+        (oldModel, request)
       else
         -- Don't bother with an AJAX call if it's not going to have any effect.
         (oldModel, Types.NoCmd)

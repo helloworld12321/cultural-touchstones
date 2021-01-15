@@ -37,7 +37,22 @@ type Message
 
   -- We receive this message when our request to the server to change the
   -- watchlist completes (either successfully or unsuccessfully).
-  | PutWatchlistCompleted (Result Http.Error ())
+  --
+  -- Sometimes, after we've changed the watchlist, we should clear the
+  -- watchlist <input> tag at the top of the page. (If we just added a movie
+  -- name, for example, we should reset the <input>.)
+  -- But sometimes, we're changing the watchlist for unrelated reasons, like
+  -- deleting a movie. In those cases, there's no need to clear the <input>
+  -- tag.
+  --
+  -- We represent this in the message by the `shouldClearWatchlistInput` field.
+  -- If this field is True AND the watchlist was updated successfully, then
+  -- we'll clear the watchlist <input>.
+  -- But, if the `shouldClearWatchlistInput` is False, or if the request
+  -- failed, then we won't touch the <input>.
+  | PutWatchlistCompleted
+      { shouldClearWatchlistInput: Bool }
+      (Result Http.Error ())
 
   -- We receive this message when the user edits the "add watchlist item" text
   -- field. The string parameter is the current contents of that field.

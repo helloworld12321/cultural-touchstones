@@ -37,10 +37,13 @@ getWatchlist responder =
 {-| This command sends the watchlist to the server (replacing the existing
 watchlist).
 -}
-putWatchlist : Watchlist.Types.Watchlist -> Types.PseudoCmd Types.Message
-putWatchlist watchlist =
+putWatchlist
+  : { shouldClearWatchlistInput: Bool }
+  -> Watchlist.Types.Watchlist
+  -> Types.PseudoCmd Types.Message
+putWatchlist options watchlist =
   Types.PutCmd
     { url = "/api/watchlist"
     , body = encodeWatchlist watchlist
-    , expect = Http.expectWhatever Types.PutWatchlistCompleted
+    , expect = Http.expectWhatever <| Types.PutWatchlistCompleted options
     }
