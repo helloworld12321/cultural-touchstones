@@ -2,4 +2,6 @@ types {
   text/html html;
   text/css css;
   application/javascript js;
+  image/svg+xml svg;
+  image/png png;
 }

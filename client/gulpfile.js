@@ -15,6 +15,7 @@ const fingerprint = require('gulp-fingerprint');
 const rename = require('gulp-rename');
 const rev = require('gulp-rev');
 const uglify = require('gulp-uglify');
+const sharp = require('sharp');
 
 fs = fs.promises;
 path = path.posix;
@@ -27,6 +28,19 @@ async function touch(filePath) {
   const now = new Date();
   await fs.utimes(filePath, now, now);
 }
+
+/**
+ * Convert an SVG file to a new PNG file.
+ *
+ * `srcName` should be the path to the SVG to convert.
+ *
+ * `destName` should be a file path; the new PNG file will be written here.
+ * Any intermediary directories will be created.
+ */
+async function svgToPng(srcName, destName) {
+  await sharp(srcName).png().toFile(destName);
+};
+
 
 
 const dev = {
@@ -64,6 +78,16 @@ const dev = {
       .pipe(elm())
       .pipe(rename('elm.js'))
       .pipe(gulp.dest('dist/'));
+  },
+
+  /**
+   * Build any static assets, and put the output in the right place.
+   */
+  buildAssets(done) {
+    bach.series(
+      () => gulp.src('assets/*').pipe(gulp.dest('dist/assets/')),
+      () => svgToPng('assets/favicon.svg', 'dist/assets/favicon.png'),
+    )(done);
   },
 
   async fingerprintFiles() {
@@ -123,10 +147,24 @@ const prod = {
       .pipe(gulp.dest('build/'));
   },
 
+  buildAssets(done) {
+    bach.series(
+      () => gulp.src('assets/*').pipe(gulp.dest('build/assets/')),
+      () => svgToPng('assets/favicon.svg', 'build/assets/favicon.png'),
+    )(done);
+  },
+
+
   fingerprintFiles(done) {
+    const filesToHash = [
+      'build/*.js',
+      'build/styles/*.css',
+      'build/assets/*',
+    ];
+
     // Use () => {} functions, so that we have access to `this`.
     const takeHashes = () => {
-      return gulp.src(['build/*.js', 'build/styles/*.css'], {base: 'build'})
+      return gulp.src(filesToHash, {base: 'build'})
         .pipe(rev())
         .pipe(gulp.dest('dist/'))
         .pipe(rev.manifest(this.fingerprintsJsonFile))
@@ -169,12 +207,13 @@ function build(env) {
   const buildHtml = env.buildHtml.bind(env);
   const buildSass = env.buildSass.bind(env);
   const buildElm = env.buildElm.bind(env);
+  const buildAssets = env.buildAssets.bind(env);
   const fingerprintFiles = env.fingerprintFiles.bind(env);
 
   return function(done) {
     log.info(chalk`Building in {green ${env.name}} mode`);
     gulp.series(
-      gulp.parallel(buildHtml, buildSass, buildElm),
+      gulp.parallel(buildHtml, buildSass, buildElm, buildAssets),
       fingerprintFiles,
     )(done);
   };
